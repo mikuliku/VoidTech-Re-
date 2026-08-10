@@ -34,6 +34,17 @@ public final class ModBlocks {
             )
     );
 
+    public static final RegistryObject<Block> VOID_CRYSTAL_ORE = BLOCKS.register(
+            "void_crystal_ore",
+            () -> new Block(
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_CYAN)
+                            .strength(3.0F, 3.0F)
+                            .requiresCorrectToolForDrops()
+                            .sound(SoundType.STONE)
+            )
+    );
+
     private ModBlocks() {
     }
 }
