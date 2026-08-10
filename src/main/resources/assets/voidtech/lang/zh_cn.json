@@ -7,5 +7,11 @@
   "item.voidtech.voidium_ingot": "虚空锭",
   "item.voidtech.resonant_void_alloy": "共振虚空合金",
   "item.voidtech.dimensional_alloy": "维度合金",
-  "item.voidtech.void_singularity": "虚空奇点"
+  "item.voidtech.void_singularity": "虚空奇点",
+  "block.voidtech.void_mining_machine_t1": "虚空采矿机 T1",
+  "block.voidtech.void_mining_machine_t2": "虚空采矿机 T2",
+  "block.voidtech.void_mining_machine_t3": "虚空采矿机 T3",
+  "block.voidtech.void_mining_machine_t4": "虚空采矿机 T4",
+  "block.voidtech.void_mining_machine_t5": "虚空采矿机 T5",
+  "block.voidtech.void_mining_machine_t6": "虚空采矿机 T6"
 }
