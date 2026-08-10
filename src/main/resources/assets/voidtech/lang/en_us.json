@@ -2,5 +2,10 @@
   "block.voidtech.void_frame": "Void Frame",
   "block.voidtech.reinforced_void_frame": "Reinforced Void Frame",
   "block.voidtech.void_crystal_ore": "Void Crystal Ore",
-  "item.voidtech.void_crystal": "Void Crystal"
+  "item.voidtech.void_crystal": "Void Crystal",
+  "item.voidtech.void_alloy": "Void Alloy",
+  "item.voidtech.voidium_ingot": "Voidium Ingot",
+  "item.voidtech.resonant_void_alloy": "Resonant Void Alloy",
+  "item.voidtech.dimensional_alloy": "Dimensional Alloy",
+  "item.voidtech.void_singularity": "Void Singularity"
 }
