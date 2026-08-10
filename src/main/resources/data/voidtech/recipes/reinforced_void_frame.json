@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "VVV",
+    "VCV",
+    "VVV"
+  ],
+  "key": {
+    "V": {
+      "item": "voidtech:void_frame"
+    },
+    "C": {
+      "item": "voidtech:void_crystal"
+    }
+  },
+  "result": {
+    "item": "voidtech:reinforced_void_frame",
+    "count": 1
+  }
+}
