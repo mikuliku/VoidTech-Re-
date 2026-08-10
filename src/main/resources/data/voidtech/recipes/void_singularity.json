@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DND",
+    "NSN",
+    "DND"
+  ],
+  "key": {
+    "D": {
+      "item": "voidtech:dimensional_alloy"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "S": {
+      "item": "minecraft:echo_shard"
+    }
+  },
+  "result": {
+    "item": "voidtech:void_singularity",
+    "count": 1
+  }
+}
