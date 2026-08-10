@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "voidtech:block/void_mining_machine_t2"
+  }
+}
