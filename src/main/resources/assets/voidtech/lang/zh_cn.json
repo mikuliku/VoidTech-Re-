@@ -2,5 +2,10 @@
   "block.voidtech.void_frame": "虚空框架",
   "block.voidtech.reinforced_void_frame": "强化虚空框架",
   "block.voidtech.void_crystal_ore": "虚空水晶矿",
-  "item.voidtech.void_crystal": "虚空水晶"
+  "item.voidtech.void_crystal": "虚空水晶",
+  "item.voidtech.void_alloy": "虚空合金",
+  "item.voidtech.voidium_ingot": "虚空锭",
+  "item.voidtech.resonant_void_alloy": "共振虚空合金",
+  "item.voidtech.dimensional_alloy": "维度合金",
+  "item.voidtech.void_singularity": "虚空奇点"
 }
