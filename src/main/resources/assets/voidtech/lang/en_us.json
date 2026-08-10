@@ -1,4 +1,6 @@
 {
   "block.voidtech.void_frame": "Void Frame",
-  "block.voidtech.reinforced_void_frame": "Reinforced Void Frame"
+  "block.voidtech.reinforced_void_frame": "Reinforced Void Frame",
+  "block.voidtech.void_crystal_ore": "Void Crystal Ore",
+  "item.voidtech.void_crystal": "Void Crystal"
 }
