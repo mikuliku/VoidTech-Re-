@@ -28,6 +28,21 @@ public final class ModItems {
             )
     );
 
+    public static final RegistryObject<Item> VOID_CRYSTAL_ORE = ITEMS.register(
+            "void_crystal_ore",
+            () -> new BlockItem(
+                    ModBlocks.VOID_CRYSTAL_ORE.get(),
+                    new Item.Properties()
+            )
+    );
+
+    public static final RegistryObject<Item> VOID_CRYSTAL = ITEMS.register(
+            "void_crystal",
+            () -> new Item(
+                    new Item.Properties()
+            )
+    );
+
     private ModItems() {
     }
 }
