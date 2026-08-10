@@ -24,6 +24,16 @@ public final class ModBlocks {
             )
     );
 
+    public static final RegistryObject<Block> REINFORCED_VOID_FRAME = BLOCKS.register(
+            "reinforced_void_frame",
+            () -> new Block(
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                            .strength(5.0F, 10.0F)
+                            .sound(SoundType.METAL)
+            )
+    );
+
     private ModBlocks() {
     }
 }
