@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "VQV",
+    "QDQ",
+    "VQV"
+  ],
+  "key": {
+    "V": {
+      "item": "voidtech:voidium_ingot"
+    },
+    "Q": {
+      "item": "minecraft:quartz"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "item": "voidtech:resonant_void_alloy",
+    "count": 1
+  }
+}
