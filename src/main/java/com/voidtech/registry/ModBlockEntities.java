@@ -17,7 +17,9 @@ public final class ModBlockEntities {
                     "void_mining_machine",
                     () -> BlockEntityType.Builder.of(
                             (pos, state) -> new VoidMiningMachineBlockEntity(
-                                    VOID_MINING_MACHINE.get(), pos, state,
+                                    null,
+                                    pos,
+                                    state,
                                     ((com.voidtech.block.VoidMiningMachineBlock) state.getBlock()).getTier()
                             ),
                             ModBlocks.VOID_MINING_MACHINE_T1.get(),
