@@ -20,6 +20,14 @@ public final class ModItems {
             )
     );
 
+    public static final RegistryObject<Item> REINFORCED_VOID_FRAME = ITEMS.register(
+            "reinforced_void_frame",
+            () -> new BlockItem(
+                    ModBlocks.REINFORCED_VOID_FRAME.get(),
+                    new Item.Properties()
+            )
+    );
+
     private ModItems() {
     }
 }
