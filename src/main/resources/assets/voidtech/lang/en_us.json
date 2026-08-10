@@ -7,5 +7,11 @@
   "item.voidtech.voidium_ingot": "Voidium Ingot",
   "item.voidtech.resonant_void_alloy": "Resonant Void Alloy",
   "item.voidtech.dimensional_alloy": "Dimensional Alloy",
-  "item.voidtech.void_singularity": "Void Singularity"
+  "item.voidtech.void_singularity": "Void Singularity",
+  "block.voidtech.void_mining_machine_t1": "Void Mining Machine T1",
+  "block.voidtech.void_mining_machine_t2": "Void Mining Machine T2",
+  "block.voidtech.void_mining_machine_t3": "Void Mining Machine T3",
+  "block.voidtech.void_mining_machine_t4": "Void Mining Machine T4",
+  "block.voidtech.void_mining_machine_t5": "Void Mining Machine T5",
+  "block.voidtech.void_mining_machine_t6": "Void Mining Machine T6"
 }
