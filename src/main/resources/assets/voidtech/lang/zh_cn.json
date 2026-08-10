@@ -1,4 +1,6 @@
 {
   "block.voidtech.void_frame": "虚空框架",
-  "block.voidtech.reinforced_void_frame": "强化虚空框架"
+  "block.voidtech.reinforced_void_frame": "强化虚空框架",
+  "block.voidtech.void_crystal_ore": "虚空水晶矿",
+  "item.voidtech.void_crystal": "虚空水晶"
 }
