@@ -1,6 +1,7 @@
 package com.voidtech.registry;
 
 import com.voidtech.VoidTech;
+import com.voidtech.block.VoidEnergyInterfaceBlock;
 import com.voidtech.block.VoidMiningMachineBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -47,11 +48,28 @@ public final class ModBlocks {
     public static final RegistryObject<Block> VOID_MINING_MACHINE_T5 = registerMachine("void_mining_machine_t5", 5);
     public static final RegistryObject<Block> VOID_MINING_MACHINE_T6 = registerMachine("void_mining_machine_t6", 6);
 
+    public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T1 = registerEnergyInterface("void_energy_interface_t1", 1);
+    public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T2 = registerEnergyInterface("void_energy_interface_t2", 2);
+    public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T3 = registerEnergyInterface("void_energy_interface_t3", 3);
+    public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T4 = registerEnergyInterface("void_energy_interface_t4", 4);
+    public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T5 = registerEnergyInterface("void_energy_interface_t5", 5);
+    public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T6 = registerEnergyInterface("void_energy_interface_t6", 6);
+
     private static RegistryObject<Block> registerMachine(String id, int tier) {
         return BLOCKS.register(id, () -> new VoidMiningMachineBlock(
                 BlockBehaviour.Properties.of()
                         .mapColor(MapColor.COLOR_LIGHT_BLUE)
                         .strength(5.0F, 10.0F)
+                        .sound(SoundType.METAL),
+                tier
+        ));
+    }
+
+    private static RegistryObject<Block> registerEnergyInterface(String id, int tier) {
+        return BLOCKS.register(id, () -> new VoidEnergyInterfaceBlock(
+                BlockBehaviour.Properties.of()
+                        .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                        .strength(4.0F, 8.0F)
                         .sound(SoundType.METAL),
                 tier
         ));
