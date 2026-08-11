@@ -1,6 +1,7 @@
 package com.voidtech.block.entity;
 
 import com.voidtech.menu.VoidMiningMachineMenu;
+import com.voidtech.multiblock.VoidMiningStructure;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -8,6 +9,8 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,6 +34,8 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     private final int tier;
     private final EnergyStorage energyStorage;
     private final LazyOptional<IEnergyStorage> energyCapability;
+
+    private boolean structureValid;
 
     public VoidMiningMachineBlockEntity(
             BlockEntityType<?> type,
@@ -64,6 +69,17 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         this.energyCapability = LazyOptional.of(() -> this.energyStorage);
     }
 
+    public static void serverTick(Level level, BlockPos pos, BlockState state,
+                                  VoidMiningMachineBlockEntity blockEntity) {
+        if (level.getGameTime() % 10L == 0L) {
+            boolean valid = VoidMiningStructure.isValid(level, pos, blockEntity.tier);
+            if (valid != blockEntity.structureValid) {
+                blockEntity.structureValid = valid;
+                blockEntity.setChanged();
+            }
+        }
+    }
+
     public int getTier() {
         return tier;
     }
@@ -80,6 +96,10 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         return ENERGY_TRANSFER[tier];
     }
 
+    public boolean isStructureValid() {
+        return structureValid;
+    }
+
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.voidtech.void_mining_machine_t" + tier);
@@ -87,7 +107,28 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
 
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
-        return new VoidMiningMachineMenu(containerId, inventory, this);
+        ContainerData data = new ContainerData() {
+            @Override
+            public int get(int index) {
+                return switch (index) {
+                    case 0 -> getEnergyStored();
+                    case 1 -> getMaxEnergyStored();
+                    case 2 -> isStructureValid() ? 1 : 0;
+                    default -> 0;
+                };
+            }
+
+            @Override
+            public void set(int index, int value) {
+            }
+
+            @Override
+            public int getCount() {
+                return 3;
+            }
+        };
+
+        return new VoidMiningMachineMenu(containerId, inventory, tier, data);
     }
 
     @Override
@@ -105,6 +146,7 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         tag.put("Energy", energyStorage.serializeNBT());
+        tag.putBoolean("StructureValid", structureValid);
     }
 
     @Override
@@ -113,6 +155,7 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         if (tag.contains("Energy")) {
             energyStorage.deserializeNBT(tag.get("Energy"));
         }
+        structureValid = tag.getBoolean("StructureValid");
     }
 
     @Override
