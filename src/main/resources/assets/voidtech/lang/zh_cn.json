@@ -24,5 +24,11 @@
   "block.voidtech.void_energy_interface_t3": "虚空能源接口 T3",
   "block.voidtech.void_energy_interface_t4": "虚空能源接口 T4",
   "block.voidtech.void_energy_interface_t5": "虚空能源接口 T5",
-  "block.voidtech.void_energy_interface_t6": "虚空能源接口 T6"
+  "block.voidtech.void_energy_interface_t6": "虚空能源接口 T6",
+  "block.voidtech.void_item_interface_t1": "虚空物品接口 T1",
+  "block.voidtech.void_item_interface_t2": "虚空物品接口 T2",
+  "block.voidtech.void_item_interface_t3": "虚空物品接口 T3",
+  "block.voidtech.void_item_interface_t4": "虚空物品接口 T4",
+  "block.voidtech.void_item_interface_t5": "虚空物品接口 T5",
+  "block.voidtech.void_item_interface_t6": "虚空物品接口 T6"
 }
