@@ -6,8 +6,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
-public class VoidMiningMachineScreen
-        extends AbstractContainerScreen<VoidMiningMachineMenu> {
+public class VoidMiningMachineScreen extends AbstractContainerScreen<VoidMiningMachineMenu> {
 
     public VoidMiningMachineScreen(
             VoidMiningMachineMenu menu,
@@ -40,11 +39,7 @@ public class VoidMiningMachineScreen
         int barHeight = 6;
 
         graphics.fill(
-                barLeft,
-                barTop,
-                barLeft + barWidth,
-                barTop + barHeight,
-                0xFF253641
+                barLeft, barTop, barLeft + barWidth, barTop + barHeight, 0xFF253641
         );
 
         int maxEnergy = Math.max(1, menu.getMaxEnergyStored());
@@ -53,11 +48,7 @@ public class VoidMiningMachineScreen
 
         if (filledWidth > 0) {
             graphics.fill(
-                    barLeft,
-                    barTop,
-                    barLeft + filledWidth,
-                    barTop + barHeight,
-                    0xFF56BCE8
+                    barLeft, barTop, barLeft + filledWidth, barTop + barHeight, 0xFF56BCE8
             );
         }
     }
@@ -73,55 +64,43 @@ public class VoidMiningMachineScreen
                 Component.translatable(
                         "block.voidtech.void_mining_machine_t" + menu.getTier()
                 ),
-                8,
-                10,
-                0xE8F8FF,
-                false
+                8, 10, 0xE8F8FF, false
         );
 
         graphics.drawString(
                 font,
                 Component.translatable("gui.voidtech.status"),
-                12,
-                39,
-                0xBBD9E8,
-                false
+                12, 39, 0xBBD9E8, false
+        );
+
+        Component status = Component.translatable(
+                menu.isStructureValid()
+                        ? "gui.voidtech.structure_valid"
+                        : "gui.voidtech.structure_invalid"
         );
 
         graphics.drawString(
                 font,
-                "待机",
-                95,
-                39,
-                0xE8F8FF,
-                false
+                status,
+                72, 39, menu.isStructureValid() ? 0x8FF0A8 : 0xFF8A8A, false
         );
 
         graphics.drawString(
                 font,
                 Component.translatable("gui.voidtech.energy"),
-                12,
-                82,
-                0xBBD9E8,
-                false
+                12, 82, 0xBBD9E8, false
         );
 
         graphics.drawString(
                 font,
                 menu.getEnergyStored() + " / " + menu.getMaxEnergyStored() + " FE",
-                76,
-                82,
-                0xE8F8FF,
-                false
+                76, 82, 0xE8F8FF, false
         );
 
         graphics.drawString(
                 font,
                 Component.translatable("gui.voidtech.progress"),
-                12,
-                99,
-                0xBBD9E8,
-                false
+                12, 99, 0xBBD9E8, false
         );
     }
 }
