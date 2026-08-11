@@ -18,5 +18,11 @@
   "block.voidtech.void_mining_machine_t3": "虚空采矿机 T3",
   "block.voidtech.void_mining_machine_t4": "虚空采矿机 T4",
   "block.voidtech.void_mining_machine_t5": "虚空采矿机 T5",
-  "block.voidtech.void_mining_machine_t6": "虚空采矿机 T6"
+  "block.voidtech.void_mining_machine_t6": "虚空采矿机 T6",
+  "block.voidtech.void_energy_interface_t1": "虚空能源接口 T1",
+  "block.voidtech.void_energy_interface_t2": "虚空能源接口 T2",
+  "block.voidtech.void_energy_interface_t3": "虚空能源接口 T3",
+  "block.voidtech.void_energy_interface_t4": "虚空能源接口 T4",
+  "block.voidtech.void_energy_interface_t5": "虚空能源接口 T5",
+  "block.voidtech.void_energy_interface_t6": "虚空能源接口 T6"
 }
