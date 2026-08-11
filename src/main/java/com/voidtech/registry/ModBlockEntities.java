@@ -1,6 +1,7 @@
 package com.voidtech.registry;
 
 import com.voidtech.VoidTech;
+import com.voidtech.block.entity.VoidEnergyInterfaceBlockEntity;
 import com.voidtech.block.entity.VoidMiningMachineBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.registries.DeferredRegister;
@@ -28,6 +29,25 @@ public final class ModBlockEntities {
                             ModBlocks.VOID_MINING_MACHINE_T4.get(),
                             ModBlocks.VOID_MINING_MACHINE_T5.get(),
                             ModBlocks.VOID_MINING_MACHINE_T6.get()
+                    ).build(null)
+            );
+
+    public static final RegistryObject<BlockEntityType<VoidEnergyInterfaceBlockEntity>> VOID_ENERGY_INTERFACE =
+            BLOCK_ENTITIES.register(
+                    "void_energy_interface",
+                    () -> BlockEntityType.Builder.of(
+                            (pos, state) -> new VoidEnergyInterfaceBlockEntity(
+                                    null,
+                                    pos,
+                                    state,
+                                    ((com.voidtech.block.VoidEnergyInterfaceBlock) state.getBlock()).getTier()
+                            ),
+                            ModBlocks.VOID_ENERGY_INTERFACE_T1.get(),
+                            ModBlocks.VOID_ENERGY_INTERFACE_T2.get(),
+                            ModBlocks.VOID_ENERGY_INTERFACE_T3.get(),
+                            ModBlocks.VOID_ENERGY_INTERFACE_T4.get(),
+                            ModBlocks.VOID_ENERGY_INTERFACE_T5.get(),
+                            ModBlocks.VOID_ENERGY_INTERFACE_T6.get()
                     ).build(null)
             );
 
