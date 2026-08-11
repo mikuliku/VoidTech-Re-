@@ -1,6 +1,7 @@
 package com.voidtech.client;
 
 import com.voidtech.client.screen.VoidEnergyInterfaceScreen;
+import com.voidtech.client.screen.VoidItemInterfaceScreen;
 import com.voidtech.client.screen.VoidMiningMachineScreen;
 import com.voidtech.registry.ModMenus;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -18,6 +19,7 @@ public final class VoidTechClient {
         event.enqueueWork(() -> {
             MenuScreens.register(ModMenus.VOID_MINING_MACHINE.get(), VoidMiningMachineScreen::new);
             MenuScreens.register(ModMenus.VOID_ENERGY_INTERFACE.get(), VoidEnergyInterfaceScreen::new);
+            MenuScreens.register(ModMenus.VOID_ITEM_INTERFACE.get(), VoidItemInterfaceScreen::new);
         });
     }
 }
