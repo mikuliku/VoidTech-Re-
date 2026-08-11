@@ -1,5 +1,6 @@
 package com.voidtech.block;
 
+import com.voidtech.block.entity.VoidMiningMachineBlockEntity;
 import com.voidtech.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,6 +11,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
@@ -21,7 +24,7 @@ public class VoidMiningMachineBlock extends Block implements EntityBlock {
 
     public VoidMiningMachineBlock(Properties properties, int tier) {
         super(properties);
-        this.tier = tier;
+        this.tier = Math.max(1, Math.min(6, tier));
     }
 
     public int getTier() {
@@ -31,9 +34,24 @@ public class VoidMiningMachineBlock extends Block implements EntityBlock {
     @Override
     @Nullable
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new com.voidtech.block.entity.VoidMiningMachineBlockEntity(
+        return new VoidMiningMachineBlockEntity(
                 ModBlockEntities.VOID_MINING_MACHINE.get(), pos, state, tier
         );
+    }
+
+    @Override
+    @Nullable
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
+            Level level, BlockState state, BlockEntityType<T> type) {
+        if (level.isClientSide) {
+            return null;
+        }
+
+        return type == ModBlockEntities.VOID_MINING_MACHINE.get()
+                ? (lvl, pos, blockState, blockEntity) ->
+                    VoidMiningMachineBlockEntity.serverTick(
+                            lvl, pos, blockState, (VoidMiningMachineBlockEntity) blockEntity)
+                : null;
     }
 
     @Override
