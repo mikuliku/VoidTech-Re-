@@ -21,23 +21,11 @@ import org.jetbrains.annotations.Nullable;
 public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuProvider {
 
     private static final int[] ENERGY_CAPACITY = {
-            0,
-            100_000,
-            250_000,
-            500_000,
-            1_000_000,
-            2_500_000,
-            5_000_000
+            0, 100_000, 250_000, 500_000, 1_000_000, 2_500_000, 5_000_000
     };
 
     private static final int[] ENERGY_TRANSFER = {
-            0,
-            2_000,
-            5_000,
-            10_000,
-            20_000,
-            40_000,
-            80_000
+            0, 2_000, 5_000, 10_000, 20_000, 40_000, 80_000
     };
 
     private final int tier;
@@ -51,7 +39,6 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
             int tier
     ) {
         super(type, pos, state);
-
         this.tier = Math.max(1, Math.min(6, tier));
 
         this.energyStorage = new EnergyStorage(
@@ -62,18 +49,14 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
             @Override
             public int receiveEnergy(int maxReceive, boolean simulate) {
                 int received = super.receiveEnergy(maxReceive, simulate);
-                if (!simulate && received > 0) {
-                    setChanged();
-                }
+                if (!simulate && received > 0) setChanged();
                 return received;
             }
 
             @Override
             public int extractEnergy(int maxExtract, boolean simulate) {
                 int extracted = super.extractEnergy(maxExtract, simulate);
-                if (!simulate && extracted > 0) {
-                    setChanged();
-                }
+                if (!simulate && extracted > 0) setChanged();
                 return extracted;
             }
         };
@@ -99,22 +82,12 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable(
-                "block.voidtech.void_mining_machine_t" + tier
-        );
+        return Component.translatable("block.voidtech.void_mining_machine_t" + tier);
     }
 
     @Override
-    public AbstractContainerMenu createMenu(
-            int containerId,
-            Inventory inventory,
-            Player player
-    ) {
-        return new VoidMiningMachineMenu(
-                containerId,
-                inventory,
-                this
-        );
+    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+        return new VoidMiningMachineMenu(containerId, inventory, this);
     }
 
     @Override
@@ -125,7 +98,6 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         if (capability == ForgeCapabilities.ENERGY) {
             return energyCapability.cast();
         }
-
         return super.getCapability(capability, side);
     }
 
@@ -138,7 +110,6 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-
         if (tag.contains("Energy")) {
             energyStorage.deserializeNBT(tag.get("Energy"));
         }
