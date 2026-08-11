@@ -1,6 +1,5 @@
 package com.voidtech.menu;
 
-import com.voidtech.block.entity.VoidMiningMachineBlockEntity;
 import com.voidtech.registry.ModMenus;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -18,38 +17,6 @@ public class VoidMiningMachineMenu extends AbstractContainerMenu {
     public VoidMiningMachineMenu(
             int containerId,
             Inventory inventory,
-            VoidMiningMachineBlockEntity blockEntity
-    ) {
-        super(ModMenus.VOID_MINING_MACHINE.get(), containerId);
-
-        this.tier = blockEntity.getTier();
-        this.data = new ContainerData() {
-            @Override
-            public int get(int index) {
-                return switch (index) {
-                    case 0 -> blockEntity.getEnergyStored();
-                    case 1 -> blockEntity.getMaxEnergyStored();
-                    default -> 0;
-                };
-            }
-
-            @Override
-            public void set(int index, int value) {
-                // Energy is controlled by the machine's Forge Energy storage.
-            }
-
-            @Override
-            public int getCount() {
-                return 2;
-            }
-        };
-
-        addDataSlots(this.data);
-    }
-
-    private VoidMiningMachineMenu(
-            int containerId,
-            Inventory inventory,
             int tier,
             ContainerData data
     ) {
@@ -59,18 +26,21 @@ public class VoidMiningMachineMenu extends AbstractContainerMenu {
         addDataSlots(this.data);
     }
 
+    private VoidMiningMachineMenu(
+            int containerId,
+            Inventory inventory,
+            int tier
+    ) {
+        this(containerId, inventory, tier, new SimpleContainerData(3));
+    }
+
     public static VoidMiningMachineMenu fromNetwork(
             int containerId,
             Inventory inventory,
             FriendlyByteBuf data
     ) {
         int tier = data.readVarInt();
-        return new VoidMiningMachineMenu(
-                containerId,
-                inventory,
-                tier,
-                new SimpleContainerData(2)
-        );
+        return new VoidMiningMachineMenu(containerId, inventory, tier);
     }
 
     public int getTier() {
@@ -83,6 +53,10 @@ public class VoidMiningMachineMenu extends AbstractContainerMenu {
 
     public int getMaxEnergyStored() {
         return Math.max(1, data.get(1));
+    }
+
+    public boolean isStructureValid() {
+        return data.get(2) == 1;
     }
 
     @Override
