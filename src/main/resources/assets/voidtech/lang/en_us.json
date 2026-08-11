@@ -14,9 +14,15 @@
   "gui.voidtech.output": "Output",
   "gui.voidtech.upgrades": "Upgrades",
   "block.voidtech.void_mining_machine_t1": "Void Mining Machine T1",
+  "block.voidtech.void_energy_interface_t1": "Void Energy Interface T1",
   "block.voidtech.void_mining_machine_t2": "Void Mining Machine T2",
+  "block.voidtech.void_energy_interface_t2": "Void Energy Interface T2",
   "block.voidtech.void_mining_machine_t3": "Void Mining Machine T3",
+  "block.voidtech.void_energy_interface_t3": "Void Energy Interface T3",
   "block.voidtech.void_mining_machine_t4": "Void Mining Machine T4",
+  "block.voidtech.void_energy_interface_t4": "Void Energy Interface T4",
   "block.voidtech.void_mining_machine_t5": "Void Mining Machine T5",
-  "block.voidtech.void_mining_machine_t6": "Void Mining Machine T6"
+  "block.voidtech.void_energy_interface_t5": "Void Energy Interface T5",
+  "block.voidtech.void_mining_machine_t6": "Void Mining Machine T6",
+  "block.voidtech.void_energy_interface_t6": "Void Energy Interface T6"
 }
