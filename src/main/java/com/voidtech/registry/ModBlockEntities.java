@@ -2,6 +2,7 @@ package com.voidtech.registry;
 
 import com.voidtech.VoidTech;
 import com.voidtech.block.entity.VoidEnergyInterfaceBlockEntity;
+import com.voidtech.block.entity.VoidFluidInterfaceBlockEntity;
 import com.voidtech.block.entity.VoidItemInterfaceBlockEntity;
 import com.voidtech.block.entity.VoidMiningMachineBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -38,6 +39,15 @@ public final class ModBlockEntities {
                     ModBlocks.VOID_ITEM_INTERFACE_T1.get(), ModBlocks.VOID_ITEM_INTERFACE_T2.get(),
                     ModBlocks.VOID_ITEM_INTERFACE_T3.get(), ModBlocks.VOID_ITEM_INTERFACE_T4.get(),
                     ModBlocks.VOID_ITEM_INTERFACE_T5.get(), ModBlocks.VOID_ITEM_INTERFACE_T6.get()
+            ).build(null));
+
+    public static final RegistryObject<BlockEntityType<VoidFluidInterfaceBlockEntity>> VOID_FLUID_INTERFACE =
+            BLOCK_ENTITIES.register("void_fluid_interface", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new VoidFluidInterfaceBlockEntity(null, pos, state,
+                            ((com.voidtech.block.VoidFluidInterfaceBlock) state.getBlock()).getTier()),
+                    ModBlocks.VOID_FLUID_INTERFACE_T1.get(), ModBlocks.VOID_FLUID_INTERFACE_T2.get(),
+                    ModBlocks.VOID_FLUID_INTERFACE_T3.get(), ModBlocks.VOID_FLUID_INTERFACE_T4.get(),
+                    ModBlocks.VOID_FLUID_INTERFACE_T5.get(), ModBlocks.VOID_FLUID_INTERFACE_T6.get()
             ).build(null));
 
     private ModBlockEntities() {}
