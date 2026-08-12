@@ -1,18 +1,4 @@
 {
-  "block.voidtech.void_frame": "虚空框架",
-  "block.voidtech.reinforced_void_frame": "强化虚空框架",
-  "block.voidtech.void_crystal_ore": "虚空水晶矿",
-  "item.voidtech.void_crystal": "虚空水晶",
-  "item.voidtech.void_alloy": "虚空合金",
-  "item.voidtech.voidium_ingot": "虚空锭",
-  "item.voidtech.resonant_void_alloy": "共振虚空合金",
-  "item.voidtech.dimensional_alloy": "维度合金",
-  "item.voidtech.void_singularity": "虚空奇点",
-  "gui.voidtech.status": "状态",
-  "gui.voidtech.energy": "能量",
-  "gui.voidtech.progress": "进度",
-  "gui.voidtech.output": "输出",
-  "gui.voidtech.upgrades": "升级",
   "block.voidtech.void_mining_machine_t1": "虚空采矿机 T1",
   "block.voidtech.void_mining_machine_t2": "虚空采矿机 T2",
   "block.voidtech.void_mining_machine_t3": "虚空采矿机 T3",
@@ -30,5 +16,11 @@
   "block.voidtech.void_item_interface_t3": "虚空物品接口 T3",
   "block.voidtech.void_item_interface_t4": "虚空物品接口 T4",
   "block.voidtech.void_item_interface_t5": "虚空物品接口 T5",
-  "block.voidtech.void_item_interface_t6": "虚空物品接口 T6"
+  "block.voidtech.void_item_interface_t6": "虚空物品接口 T6",
+  "block.voidtech.void_fluid_interface_t1": "虚空流体接口 T1",
+  "block.voidtech.void_fluid_interface_t2": "虚空流体接口 T2",
+  "block.voidtech.void_fluid_interface_t3": "虚空流体接口 T3",
+  "block.voidtech.void_fluid_interface_t4": "虚空流体接口 T4",
+  "block.voidtech.void_fluid_interface_t5": "虚空流体接口 T5",
+  "block.voidtech.void_fluid_interface_t6": "虚空流体接口 T6"
 }
