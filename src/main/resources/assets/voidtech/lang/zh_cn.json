@@ -22,5 +22,17 @@
   "block.voidtech.void_fluid_interface_t3": "虚空流体接口 T3",
   "block.voidtech.void_fluid_interface_t4": "虚空流体接口 T4",
   "block.voidtech.void_fluid_interface_t5": "虚空流体接口 T5",
-  "block.voidtech.void_fluid_interface_t6": "虚空流体接口 T6"
+  "block.voidtech.void_fluid_interface_t6": "虚空流体接口 T6",
+  "item.voidtech.void_crystal": "虚空水晶",
+  "item.voidtech.void_alloy": "虚空合金",
+  "item.voidtech.voidium_ingot": "虚空锭",
+  "item.voidtech.resonant_void_alloy": "共振虚空合金",
+  "item.voidtech.dimensional_alloy": "维度合金",
+  "item.voidtech.void_singularity": "虚空奇点",
+  "item.voidtech.void_building_wand": "虚空建筑手杖",
+  "message.voidtech.building_wand.success": "建筑手杖：T%1$s 结构已搭建，共放置 %2$s 个框架方块",
+  "message.voidtech.building_wand.not_enough": "建筑手杖：需要 %1$s 个框架方块，但背包只有 %2$s 个",
+  "block.voidtech.void_frame": "虚空框架",
+  "block.voidtech.reinforced_void_frame": "强化虚空框架",
+  "block.voidtech.void_crystal_ore": "虚空水晶矿"
 }
