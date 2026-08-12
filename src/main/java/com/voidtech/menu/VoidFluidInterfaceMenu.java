@@ -7,6 +7,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 public class VoidFluidInterfaceMenu extends AbstractContainerMenu {
@@ -26,10 +27,12 @@ public class VoidFluidInterfaceMenu extends AbstractContainerMenu {
                                                       FriendlyByteBuf buf) {
         int tier = buf.readVarInt();
         BlockPos pos = buf.readBlockPos();
+
         if (inventory.player.level().getBlockEntity(pos)
                 instanceof VoidFluidInterfaceBlockEntity be) {
             return new VoidFluidInterfaceMenu(containerId, inventory, tier, be.getTank(), pos);
         }
+
         return new VoidFluidInterfaceMenu(containerId, inventory, tier,
                 new FluidTank(VoidFluidInterfaceBlockEntity.capacityFor(tier)), pos);
     }
@@ -44,6 +47,11 @@ public class VoidFluidInterfaceMenu extends AbstractContainerMenu {
 
     public BlockPos getBlockPos() {
         return blockPos;
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        return ItemStack.EMPTY;
     }
 
     @Override
