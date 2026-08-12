@@ -22,5 +22,17 @@
   "block.voidtech.void_fluid_interface_t3": "Void Fluid Interface T3",
   "block.voidtech.void_fluid_interface_t4": "Void Fluid Interface T4",
   "block.voidtech.void_fluid_interface_t5": "Void Fluid Interface T5",
-  "block.voidtech.void_fluid_interface_t6": "Void Fluid Interface T6"
+  "block.voidtech.void_fluid_interface_t6": "Void Fluid Interface T6",
+  "item.voidtech.void_crystal": "Void Crystal",
+  "item.voidtech.void_alloy": "Void Alloy",
+  "item.voidtech.voidium_ingot": "Voidium Ingot",
+  "item.voidtech.resonant_void_alloy": "Resonant Void Alloy",
+  "item.voidtech.dimensional_alloy": "Dimensional Alloy",
+  "item.voidtech.void_singularity": "Void Singularity",
+  "item.voidtech.void_building_wand": "Void Building Wand",
+  "message.voidtech.building_wand.success": "Building Wand: Tier %1$s structure built, placed %2$s frame blocks",
+  "message.voidtech.building_wand.not_enough": "Building Wand: Need %1$s frame blocks, but only %2$s are available",
+  "block.voidtech.void_frame": "Void Frame",
+  "block.voidtech.reinforced_void_frame": "Reinforced Void Frame",
+  "block.voidtech.void_crystal_ore": "Void Crystal Ore"
 }
