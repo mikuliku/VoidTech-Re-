@@ -1,3 +1,4 @@
+
 package com.voidtech.client.screen;
 
 import com.voidtech.menu.VoidMiningMachineMenu;
@@ -15,7 +16,7 @@ public class VoidMiningMachineScreen extends AbstractContainerScreen<VoidMiningM
     ) {
         super(menu, inventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 166;
+        this.imageHeight = 184;
     }
 
     @Override
@@ -32,6 +33,7 @@ public class VoidMiningMachineScreen extends AbstractContainerScreen<VoidMiningM
         graphics.fill(left + 5, top + 5, left + imageWidth - 5, top + 27, 0xFF28506B);
         graphics.fill(left + 8, top + 34, left + 168, top + 68, 0xFF0D151C);
         graphics.fill(left + 8, top + 76, left + 168, top + 111, 0xFF0D151C);
+        graphics.fill(left + 8, top + 118, left + 168, top + 178, 0xFF0D151C);
 
         int barLeft = left + 20;
         int barTop = top + 98;
@@ -65,6 +67,12 @@ public class VoidMiningMachineScreen extends AbstractContainerScreen<VoidMiningM
                         "block.voidtech.void_mining_machine_t" + menu.getTier()
                 ),
                 8, 10, 0xE8F8FF, false
+        );
+
+        graphics.drawString(
+                font,
+                Component.translatable("gui.voidtech.upgrades"),
+                112, 1, 0xE8F8FF, false
         );
 
         graphics.drawString(
