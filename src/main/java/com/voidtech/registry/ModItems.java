@@ -33,6 +33,13 @@ public final class ModItems {
     public static final RegistryObject<Item> VOID_SINGULARITY = ITEMS.register(
             "void_singularity", () -> new Item(new Item.Properties()));
 
+    public static final RegistryObject<Item> SPEED_UPGRADE = ITEMS.register(
+            "speed_upgrade", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> YIELD_UPGRADE = ITEMS.register(
+            "yield_upgrade", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> PRECISION_UPGRADE = ITEMS.register(
+            "precision_upgrade", () -> new Item(new Item.Properties().stacksTo(16)));
+
     public static final RegistryObject<Item> VOID_MINING_MACHINE_T1 = registerMachineItem(
             "void_mining_machine_t1", ModBlocks.VOID_MINING_MACHINE_T1);
     public static final RegistryObject<Item> VOID_MINING_MACHINE_T2 = registerMachineItem(
