@@ -1,6 +1,7 @@
 package com.voidtech.registry;
 
 import com.voidtech.VoidTech;
+import com.voidtech.item.VoidBuildingWandItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
@@ -57,6 +58,10 @@ public final class ModItems {
             "void_energy_interface_t5", ModBlocks.VOID_ENERGY_INTERFACE_T5);
     public static final RegistryObject<Item> VOID_ENERGY_INTERFACE_T6 = registerMachineItem(
             "void_energy_interface_t6", ModBlocks.VOID_ENERGY_INTERFACE_T6);
+
+    public static final RegistryObject<Item> VOID_BUILDING_WAND = ITEMS.register(
+            "void_building_wand",
+            () -> new VoidBuildingWandItem(new Item.Properties()));
 
     private static RegistryObject<Item> registerMachineItem(
             String id, RegistryObject<net.minecraft.world.level.block.Block> block) {
