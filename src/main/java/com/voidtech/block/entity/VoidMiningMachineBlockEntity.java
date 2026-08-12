@@ -1,13 +1,11 @@
+
 package com.voidtech.block.entity;
 
 import com.voidtech.menu.VoidMiningMachineMenu;
 import com.voidtech.multiblock.VoidMiningStructure;
-import com.voidtech.registry.ModBlockEntities;
-import com.voidtech.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -24,10 +22,10 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
+import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -62,6 +60,7 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
             setChanged();
         }
     };
+
     private final LazyOptional<IItemHandler> itemCapability =
             LazyOptional.of(() -> outputInventory);
 
@@ -86,14 +85,18 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
             @Override
             public int receiveEnergy(int maxReceive, boolean simulate) {
                 int received = super.receiveEnergy(maxReceive, simulate);
-                if (!simulate && received > 0) setChanged();
+                if (!simulate && received > 0) {
+                    setChanged();
+                }
                 return received;
             }
 
             @Override
             public int extractEnergy(int maxExtract, boolean simulate) {
                 int extracted = super.extractEnergy(maxExtract, simulate);
-                if (!simulate && extracted > 0) setChanged();
+                if (!simulate && extracted > 0) {
+                    setChanged();
+                }
                 return extracted;
             }
         };
@@ -101,10 +104,15 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         this.energyCapability = LazyOptional.of(() -> this.energyStorage);
     }
 
-    public static void serverTick(Level level, BlockPos pos, BlockState state,
-                                  VoidMiningMachineBlockEntity machine) {
+    public static void serverTick(
+            Level level,
+            BlockPos pos,
+            BlockState state,
+            VoidMiningMachineBlockEntity machine
+    ) {
         if (level.getGameTime() % 10L == 0L) {
             boolean valid = VoidMiningStructure.isValid(level, pos, machine.tier);
+
             if (valid != machine.structureValid) {
                 machine.structureValid = valid;
                 machine.setChanged();
@@ -125,16 +133,14 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         machine.miningProgress = 0;
 
         int energyCost = MINING_ENERGY[machine.tier];
+
         if (machine.energyStorage.getEnergyStored() < energyCost) {
             return;
         }
 
         ItemStack result = machine.createMiningResult();
-        if (result.isEmpty()) {
-            return;
-        }
 
-        if (!machine.canInsert(result)) {
+        if (result.isEmpty() || !machine.canInsert(result)) {
             return;
         }
 
@@ -154,15 +160,17 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         }
 
         if (ores.isEmpty()) {
-            return new ItemStack(ModItems.VOID_CRYSTAL.get());
+            return ItemStack.EMPTY;
         }
 
         Block selected = ores.get(random.nextInt(ores.size()));
+
         int count = 1;
 
         if (tier >= 3 && random.nextFloat() < 0.20f) {
             count++;
         }
+
         if (tier >= 5 && random.nextFloat() < 0.10f) {
             count++;
         }
@@ -171,7 +179,11 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     }
 
     private boolean canInsert(ItemStack stack) {
-        return ItemHandlerHelper.insertItem(outputInventory, stack.copy(), true).isEmpty();
+        return ItemHandlerHelper.insertItem(
+                outputInventory,
+                stack.copy(),
+                true
+        ).isEmpty();
     }
 
     private void insertResult(ItemStack stack) {
@@ -212,11 +224,17 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("block.voidtech.void_mining_machine_t" + tier);
+        return Component.translatable(
+                "block.voidtech.void_mining_machine_t" + tier
+        );
     }
 
     @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+    public AbstractContainerMenu createMenu(
+            int containerId,
+            Inventory inventory,
+            Player player
+    ) {
         ContainerData data = new ContainerData() {
             @Override
             public int get(int index) {
@@ -239,7 +257,11 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         };
 
         return new VoidMiningMachineMenu(
-                containerId, inventory, tier, data, outputInventory
+                containerId,
+                inventory,
+                tier,
+                data,
+                outputInventory
         );
     }
 
@@ -262,6 +284,7 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
+
         tag.put("Energy", energyStorage.serializeNBT());
         tag.put("OutputInventory", outputInventory.serializeNBT());
         tag.putBoolean("StructureValid", structureValid);
@@ -277,7 +300,9 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         }
 
         if (tag.contains("OutputInventory")) {
-            outputInventory.deserializeNBT(tag.getCompound("OutputInventory"));
+            outputInventory.deserializeNBT(
+                    tag.getCompound("OutputInventory")
+            );
         }
 
         structureValid = tag.getBoolean("StructureValid");
