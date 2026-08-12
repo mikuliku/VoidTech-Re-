@@ -30,9 +30,18 @@
   "item.voidtech.dimensional_alloy": "维度合金",
   "item.voidtech.void_singularity": "虚空奇点",
   "item.voidtech.void_building_wand": "虚空建筑手杖",
+  "item.voidtech.speed_upgrade": "速度升级",
+  "item.voidtech.yield_upgrade": "产量升级",
+  "item.voidtech.precision_upgrade": "精准采矿升级",
   "message.voidtech.building_wand.success": "建筑手杖：T%1$s 结构已搭建，共放置 %2$s 个框架方块",
   "message.voidtech.building_wand.not_enough": "建筑手杖：需要 %1$s 个框架方块，但背包只有 %2$s 个",
   "block.voidtech.void_frame": "虚空框架",
   "block.voidtech.reinforced_void_frame": "强化虚空框架",
-  "block.voidtech.void_crystal_ore": "虚空水晶矿"
+  "block.voidtech.void_crystal_ore": "虚空水晶矿",
+  "gui.voidtech.upgrades": "升级",
+  "gui.voidtech.status": "结构状态",
+  "gui.voidtech.structure_valid": "有效",
+  "gui.voidtech.structure_invalid": "无效",
+  "gui.voidtech.energy": "能量",
+  "gui.voidtech.progress": "进度"
 }
