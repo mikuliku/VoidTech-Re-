@@ -30,9 +30,18 @@
   "item.voidtech.dimensional_alloy": "Dimensional Alloy",
   "item.voidtech.void_singularity": "Void Singularity",
   "item.voidtech.void_building_wand": "Void Building Wand",
+  "item.voidtech.speed_upgrade": "Speed Upgrade",
+  "item.voidtech.yield_upgrade": "Yield Upgrade",
+  "item.voidtech.precision_upgrade": "Precision Upgrade",
   "message.voidtech.building_wand.success": "Building Wand: Tier %1$s structure built, placed %2$s frame blocks",
   "message.voidtech.building_wand.not_enough": "Building Wand: Need %1$s frame blocks, but only %2$s are available",
   "block.voidtech.void_frame": "Void Frame",
   "block.voidtech.reinforced_void_frame": "Reinforced Void Frame",
-  "block.voidtech.void_crystal_ore": "Void Crystal Ore"
+  "block.voidtech.void_crystal_ore": "Void Crystal Ore",
+  "gui.voidtech.upgrades": "Upgrades",
+  "gui.voidtech.status": "Status",
+  "gui.voidtech.structure_valid": "Valid",
+  "gui.voidtech.structure_invalid": "Invalid",
+  "gui.voidtech.energy": "Energy",
+  "gui.voidtech.progress": "Progress"
 }
