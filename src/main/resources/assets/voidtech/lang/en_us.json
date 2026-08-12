@@ -1,18 +1,4 @@
 {
-  "block.voidtech.void_frame": "Void Frame",
-  "block.voidtech.reinforced_void_frame": "Reinforced Void Frame",
-  "block.voidtech.void_crystal_ore": "Void Crystal Ore",
-  "item.voidtech.void_crystal": "Void Crystal",
-  "item.voidtech.void_alloy": "Void Alloy",
-  "item.voidtech.voidium_ingot": "Voidium Ingot",
-  "item.voidtech.resonant_void_alloy": "Resonant Void Alloy",
-  "item.voidtech.dimensional_alloy": "Dimensional Alloy",
-  "item.voidtech.void_singularity": "Void Singularity",
-  "gui.voidtech.status": "Status",
-  "gui.voidtech.energy": "Energy",
-  "gui.voidtech.progress": "Progress",
-  "gui.voidtech.output": "Output",
-  "gui.voidtech.upgrades": "Upgrades",
   "block.voidtech.void_mining_machine_t1": "Void Mining Machine T1",
   "block.voidtech.void_mining_machine_t2": "Void Mining Machine T2",
   "block.voidtech.void_mining_machine_t3": "Void Mining Machine T3",
@@ -30,5 +16,11 @@
   "block.voidtech.void_item_interface_t3": "Void Item Interface T3",
   "block.voidtech.void_item_interface_t4": "Void Item Interface T4",
   "block.voidtech.void_item_interface_t5": "Void Item Interface T5",
-  "block.voidtech.void_item_interface_t6": "Void Item Interface T6"
+  "block.voidtech.void_item_interface_t6": "Void Item Interface T6",
+  "block.voidtech.void_fluid_interface_t1": "Void Fluid Interface T1",
+  "block.voidtech.void_fluid_interface_t2": "Void Fluid Interface T2",
+  "block.voidtech.void_fluid_interface_t3": "Void Fluid Interface T3",
+  "block.voidtech.void_fluid_interface_t4": "Void Fluid Interface T4",
+  "block.voidtech.void_fluid_interface_t5": "Void Fluid Interface T5",
+  "block.voidtech.void_fluid_interface_t6": "Void Fluid Interface T6"
 }
