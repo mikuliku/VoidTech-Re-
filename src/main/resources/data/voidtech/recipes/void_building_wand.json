@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  C",
+    " S ",
+    "S  "
+  ],
+  "key": {
+    "C": {
+      "item": "voidtech:void_core"
+    },
+    "S": {
+      "item": "voidtech:voidium_ingot"
+    }
+  },
+  "result": {
+    "item": "voidtech:void_building_wand",
+    "count": 1
+  }
+}
