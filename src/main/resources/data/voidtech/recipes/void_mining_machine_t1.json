@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "FFF",
+    "FCF",
+    "FFF"
+  ],
+  "key": {
+    "F": {
+      "item": "voidtech:void_frame"
+    },
+    "C": {
+      "item": "voidtech:void_core"
+    }
+  },
+  "result": {
+    "item": "voidtech:void_mining_machine_t1",
+    "count": 1
+  }
+}
