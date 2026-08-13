@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MMM",
+    "MXM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "voidtech:void_item_interface_t4"
+    },
+    "X": {
+      "item": "voidtech:dimensional_alloy"
+    }
+  },
+  "result": {
+    "item": "voidtech:void_item_interface_t5",
+    "count": 1
+  }
+}
