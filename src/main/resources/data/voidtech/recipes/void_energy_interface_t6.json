@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MMM",
+    "MXM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "voidtech:void_energy_interface_t5"
+    },
+    "X": {
+      "item": "voidtech:void_singularity"
+    }
+  },
+  "result": {
+    "item": "voidtech:void_energy_interface_t6",
+    "count": 1
+  }
+}
