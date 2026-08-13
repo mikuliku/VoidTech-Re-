@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:gold_ingot"
+    },
+    {
+      "item": "minecraft:diamond"
+    },
+    {
+      "item": "voidtech:void_crystal"
+    }
+  ],
+  "result": {
+    "item": "voidtech:yield_upgrade",
+    "count": 1
+  }
+}
