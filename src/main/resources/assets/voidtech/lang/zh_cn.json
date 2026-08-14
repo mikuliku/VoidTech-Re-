@@ -33,6 +33,7 @@
   "item.voidtech.speed_upgrade": "速度升级",
   "item.voidtech.yield_upgrade": "产量升级",
   "item.voidtech.precision_upgrade": "精准采矿升级",
+  "item.voidtech.dimension_upgrade": "维度升级",
   "message.voidtech.building_wand.success": "建筑手杖：T%1$s 结构已搭建，共放置 %2$s 个框架方块",
   "message.voidtech.building_wand.not_enough": "建筑手杖：需要 %1$s 个框架方块，但背包只有 %2$s 个",
   "block.voidtech.void_frame": "虚空框架",
@@ -43,5 +44,9 @@
   "gui.voidtech.structure_valid": "有效",
   "gui.voidtech.structure_invalid": "无效",
   "gui.voidtech.energy": "能量",
-  "gui.voidtech.progress": "进度"
+  "gui.voidtech.progress": "进度",
+  "gui.voidtech.select_dimension": "选择维度",
+  "gui.voidtech.dimension_selection": "选择采矿维度",
+  "gui.voidtech.previous": "上一页",
+  "gui.voidtech.next": "下一页"
 }
