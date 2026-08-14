@@ -32,7 +32,8 @@
   "item.voidtech.void_building_wand": "Void Building Wand",
   "item.voidtech.speed_upgrade": "Speed Upgrade",
   "item.voidtech.yield_upgrade": "Yield Upgrade",
-  "item.voidtech.precision_upgrade": "Precision Upgrade",
+  "item.voidtech.precision_upgrade": "Precision Mining Upgrade",
+  "item.voidtech.dimension_upgrade": "Dimension Upgrade",
   "message.voidtech.building_wand.success": "Building Wand: Tier %1$s structure built, placed %2$s frame blocks",
   "message.voidtech.building_wand.not_enough": "Building Wand: Need %1$s frame blocks, but only %2$s are available",
   "block.voidtech.void_frame": "Void Frame",
@@ -43,5 +44,9 @@
   "gui.voidtech.structure_valid": "Valid",
   "gui.voidtech.structure_invalid": "Invalid",
   "gui.voidtech.energy": "Energy",
-  "gui.voidtech.progress": "Progress"
+  "gui.voidtech.progress": "Progress",
+  "gui.voidtech.select_dimension": "Select Dimension",
+  "gui.voidtech.dimension_selection": "Select Mining Dimension",
+  "gui.voidtech.previous": "Previous",
+  "gui.voidtech.next": "Next"
 }
