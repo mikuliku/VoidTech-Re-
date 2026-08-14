@@ -94,7 +94,7 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     public boolean isStructureValid(){return structureValid;} public ItemStackHandler getOutputInventory(){return output;} public ItemStackHandler getUpgradeInventory(){return upgrades;}
     public Component getDisplayName(){return Component.translatable("block.voidtech.void_mining_machine_t"+tier);}
     public AbstractContainerMenu createMenu(int id,Inventory inv,Player p){
-        ContainerData data=new ContainerData(){public int get(int i){return switch(i){case 0->getEnergyStored();case 1->getMaxEnergyStored();case 2->isStructureValid()?1:0;case 3->hasDimensionUpgrade()?1:0;default->0;}}public void set(int i,int v){}public int getCount(){return 4;}};
+        ContainerData data=new ContainerData(){public int get(int i){return switch(i){case 0->getEnergyStored();case 1->getMaxEnergyStored();case 2->isStructureValid()?1:0;case 3->hasDimensionUpgrade()?1:0;default->0;};}public void set(int i,int v){}public int getCount(){return 4;}};
         return new VoidMiningMachineMenu(id,inv,tier,data,output,upgrades);
     }
     public <T> LazyOptional<T> getCapability(Capability<T> c,@Nullable net.minecraft.core.Direction side){
