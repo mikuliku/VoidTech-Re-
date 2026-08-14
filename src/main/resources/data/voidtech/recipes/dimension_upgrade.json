@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SDS",
+    "DRD",
+    "SDS"
+  ],
+  "key": {
+    "S": {
+      "item": "voidtech:void_singularity"
+    },
+    "D": {
+      "item": "voidtech:dimensional_alloy"
+    },
+    "R": {
+      "item": "voidtech:resonant_void_alloy"
+    }
+  },
+  "result": {
+    "item": "voidtech:dimension_upgrade",
+    "count": 1
+  }
+}
