@@ -19,60 +19,44 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 public class VoidMiningMachineBlock extends Block implements EntityBlock {
-
     private final int tier;
 
-    public VoidMiningMachineBlock(Properties properties, int tier) {
+    public VoidMiningMachineBlock(Properties properties,int tier){
         super(properties);
-        this.tier = Math.max(1, Math.min(6, tier));
+        this.tier=Math.max(1,Math.min(6,tier));
     }
 
-    public int getTier() {
-        return tier;
-    }
+    public int getTier(){return tier;}
 
-    @Override
-    @Nullable
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+    @Override @Nullable
+    public BlockEntity newBlockEntity(BlockPos pos,BlockState state){
         return new VoidMiningMachineBlockEntity(
-                ModBlockEntities.VOID_MINING_MACHINE.get(), pos, state, tier
-        );
+                ModBlockEntities.VOID_MINING_MACHINE.get(),pos,state,tier);
     }
 
-    @Override
-    @Nullable
+    @Override @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
-            Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide) {
-            return null;
-        }
-
-        return type == ModBlockEntities.VOID_MINING_MACHINE.get()
-                ? (lvl, pos, blockState, blockEntity) ->
+            Level level,BlockState state,BlockEntityType<T> type){
+        if(level.isClientSide)return null;
+        return type==ModBlockEntities.VOID_MINING_MACHINE.get()
+                ? (lvl,pos,blockState,blockEntity) ->
                     VoidMiningMachineBlockEntity.serverTick(
-                            lvl, pos, blockState, (VoidMiningMachineBlockEntity) blockEntity)
+                        lvl,pos,blockState,(VoidMiningMachineBlockEntity)blockEntity)
                 : null;
     }
 
     @Override
-    public InteractionResult use(
-            BlockState state,
-            Level level,
-            BlockPos pos,
-            Player player,
-            InteractionHand hand,
-            BlockHitResult hit
-    ) {
-        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
-            if (level.getBlockEntity(pos) instanceof net.minecraft.world.MenuProvider provider) {
-                NetworkHooks.openScreen(
-                        serverPlayer,
-                        provider,
-                        buffer -> buffer.writeVarInt(tier)
-                );
+    public InteractionResult use(BlockState state,Level level,BlockPos pos,Player player,
+                                 InteractionHand hand,BlockHitResult hit){
+        if(!level.isClientSide && player instanceof ServerPlayer serverPlayer){
+            if(level.getBlockEntity(pos) instanceof net.minecraft.world.MenuProvider provider){
+                NetworkHooks.openScreen(serverPlayer,provider,
+                        buffer -> {
+                            buffer.writeVarInt(tier);
+                            buffer.writeBlockPos(pos);
+                        });
             }
         }
-
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 }
