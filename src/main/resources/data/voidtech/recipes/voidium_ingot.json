@@ -2,16 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "AVA",
-    "VGV",
-    "AVA"
+    "VCV",
+    "CGC",
+    "VCV"
   ],
   "key": {
-    "A": {
-      "item": "voidtech:void_alloy"
-    },
     "V": {
-      "item": "minecraft:iron_ingot"
+      "item": "voidtech:void_crystal"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
     },
     "G": {
       "item": "minecraft:gold_ingot"
@@ -19,6 +19,6 @@
   },
   "result": {
     "item": "voidtech:voidium_ingot",
-    "count": 1
+    "count": 2
   }
 }
