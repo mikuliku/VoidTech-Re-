@@ -15,9 +15,12 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -30,6 +33,7 @@ import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -145,6 +149,19 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         if (ores.isEmpty()) return ItemStack.EMPTY;
 
         Block selected = ores.get(random.nextInt(ores.size()));
+
+        /*
+         * Precision upgrade:
+         * - Without precision: mine the normal raw-ore result, e.g. raw iron,
+         *   raw copper or raw gold.
+         * - With precision: preserve the actual ore block as an "ore" item,
+         *   i.e. the machine produces the original ore instead of the raw ore.
+         */
+        Item resultItem = getMiningOutputItem(selected);
+        if (resultItem == null || resultItem == Items.AIR) {
+            return ItemStack.EMPTY;
+        }
+
         int count = 1;
 
         int yield = getUpgradeLevel(1);
@@ -153,15 +170,54 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
             if (random.nextFloat() < 0.25f * yield) count++;
         }
 
-        return new ItemStack(selected.asItem(), count);
+        return new ItemStack(resultItem, count);
     }
 
     /**
-     * Returns the actual server dimension being mined.
-     * Without the dimension upgrade, the machine always mines its own dimension.
-     * With the dimension upgrade installed, it mines the dimension selected by
-     * the player.
+     * Precision upgrade determines whether the machine outputs the ore block
+     * itself or the normal raw-ore drop.
      */
+    @Nullable
+    private Item getMiningOutputItem(Block oreBlock) {
+        if (getPrecisionUpgradeLevel() > 0) {
+            return oreBlock.asItem();
+        }
+
+        ResourceLocation blockId = ForgeRegistries.BLOCKS.getKey(oreBlock);
+        if (blockId == null) return null;
+
+        String path = blockId.getPath();
+
+        // Vanilla/modded normal ores:
+        // iron_ore -> raw_iron
+        // deepslate_iron_ore -> raw_iron
+        // copper_ore -> raw_copper
+        // deepslate_copper_ore -> raw_copper
+        // gold_ore -> raw_gold
+        // deepslate_gold_ore -> raw_gold
+        String oreName = path;
+
+        if (oreName.startsWith("deepslate_")) {
+            oreName = oreName.substring("deepslate_".length());
+        }
+
+        if (oreName.endsWith("_ore")) {
+            String rawPath = "raw_" + oreName.substring(0, oreName.length() - 4);
+            ResourceLocation rawId = new ResourceLocation(blockId.getNamespace(), rawPath);
+            Item rawItem = ForgeRegistries.ITEMS.getValue(rawId);
+
+            if (rawItem != null && rawItem != Items.AIR) {
+                return rawItem;
+            }
+        }
+
+        /*
+         * For ores whose mod does not register a raw_* item, fall back to the
+         * ore block item rather than returning an invalid/empty result.
+         */
+        return oreBlock.asItem();
+    }
+
     @Nullable
     private ServerLevel getMiningLevel() {
         if (level == null || level.isClientSide()) return null;
@@ -178,10 +234,6 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         return server.getLevel(key);
     }
 
-    /**
-     * Builds a dimension-specific ore pool by sampling real blocks around the
-     * machine's X/Z coordinate in the target dimension.
-     */
     private List<Block> getOrePool(ServerLevel targetLevel) {
         ResourceLocation dimension = targetLevel.dimension().location();
 
@@ -197,20 +249,22 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         int minY = Math.max(targetLevel.getMinBuildHeight(), -64);
         int maxY = Math.min(targetLevel.getMaxBuildHeight(), 320);
 
+        int step = getPrecisionUpgradeLevel() > 0 ? 2 : 4;
+
         for (int chunkX = centerChunkX - 1; chunkX <= centerChunkX + 1; chunkX++) {
             for (int chunkZ = centerChunkZ - 1; chunkZ <= centerChunkZ + 1; chunkZ++) {
                 int baseX = chunkX << 4;
                 int baseZ = chunkZ << 4;
 
-                for (int x = baseX; x < baseX + 16; x += 4) {
-                    for (int z = baseZ; z < baseZ + 16; z += 4) {
-                        for (int y = minY; y < maxY; y += 4) {
+                for (int x = baseX; x < baseX + 16; x += step) {
+                    for (int z = baseZ; z < baseZ + 16; z += step) {
+                        for (int y = minY; y < maxY; y += step) {
                             BlockState state =
                                     targetLevel.getBlockState(new BlockPos(x, y, z));
 
                             Block block = state.getBlock();
 
-                            if (block.asItem() != net.minecraft.world.item.Items.AIR
+                            if (block.asItem() != Blocks.AIR.asItem()
                                     && state.is(Tags.Blocks.ORES)) {
                                 found.add(block);
                             }
@@ -221,10 +275,9 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         }
 
         if (found.isEmpty()) {
-            for (Block block :
-                    net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValues()) {
+            for (Block block : ForgeRegistries.BLOCKS.getValues()) {
                 if (block.defaultBlockState().is(Tags.Blocks.ORES)
-                        && block.asItem() != net.minecraft.world.item.Items.AIR) {
+                        && block.asItem() != Blocks.AIR.asItem()) {
                     found.add(block);
                 }
             }
@@ -266,7 +319,6 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     public ResourceLocation getMiningDimension() {
         if (level == null) return miningDimension;
 
-        // The dimension upgrade is required for cross-dimension mining.
         if (!hasDimensionUpgrade()) {
             return level.dimension().location();
         }
