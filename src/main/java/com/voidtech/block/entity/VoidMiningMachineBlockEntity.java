@@ -4,9 +4,12 @@ import com.voidtech.menu.VoidMiningMachineMenu;
 import com.voidtech.multiblock.VoidMiningStructure;
 import com.voidtech.registry.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -38,10 +41,13 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     private static final int[] ENERGY_TRANSFER={0,2000,5000,10000,20000,40000,80000};
     private static final int[] INTERVAL={0,200,170,140,110,85,60};
     private static final int[] COST={0,100,180,300,450,650,900};
+
     private final int tier;
     private final EnergyStorage energyStorage;
     private final LazyOptional<IEnergyStorage> energyCap;
-    private final ItemStackHandler output=new ItemStackHandler(9){protected void onContentsChanged(int s){setChanged();}};
+    private final ItemStackHandler output=new ItemStackHandler(9){
+        protected void onContentsChanged(int s){setChanged();}
+    };
     private final ItemStackHandler upgrades=new ItemStackHandler(4){
         protected void onContentsChanged(int s){setChanged();}
         public int getSlotLimit(int s){return 1;}
@@ -54,9 +60,12 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         };}
     };
     private final LazyOptional<IItemHandler> itemCap=LazyOptional.of(()->output);
+
     private boolean structureValid;
     private int progress;
     private ResourceLocation miningDimension;
+    private ResourceLocation cachedOreDimension;
+    private List<Block> cachedDimensionOres=List.of();
     private final Random random=new Random();
 
     public VoidMiningMachineBlockEntity(BlockEntityType<?> type,BlockPos pos,BlockState state,int tier){
@@ -75,47 +84,135 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         if(!m.structureValid)return;
         if(++m.progress<m.getEffectiveMiningInterval())return;
         m.progress=0;
+
         int cost=m.getEffectiveEnergyCost();
         if(m.energyStorage.getEnergyStored()<cost)return;
-        ItemStack result=m.createMiningResult();
+
+        ItemStack result=m.createMiningResult(level);
         if(result.isEmpty()||!m.canInsert(result))return;
+
         m.energyStorage.extractEnergy(cost,false);
         m.insertResult(result);
         m.setChanged();
     }
 
-    private ItemStack createMiningResult(){
-        List<Block> ores=new ArrayList<>();
-        for(Block b:net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValues())
-            if(b.defaultBlockState().is(Tags.Blocks.ORES)&&
-                    b.asItem()!=net.minecraft.world.item.Items.AIR)ores.add(b);
+    private ItemStack createMiningResult(Level machineLevel){
+        List<Block> ores=getMiningOres(machineLevel);
         if(ores.isEmpty())return ItemStack.EMPTY;
+
         Block selected=ores.get(random.nextInt(ores.size()));
         int count=1;
         int y=getUpgradeLevel(1);
-        if(y>0){count+=y;if(random.nextFloat()<.25f*y)count++;}
+        if(y>0){
+            count+=y;
+            if(random.nextFloat()<.25f*y)count++;
+        }
         return new ItemStack(selected.asItem(),count);
+    }
+
+    /**
+     * Builds the ore pool from the selected dimension itself.
+     *
+     * The target dimension is resolved on the server, and a small set of
+     * generated chunks around that dimension's spawn is inspected for blocks
+     * carrying the Forge ORES tag. This makes the pool dimension-sensitive
+     * instead of using one global list of every ore registered by every mod.
+     *
+     * If the selected dimension has no loaded/generated ore in the sampled
+     * area, we fall back to the global ore registry so a custom dimension
+     * cannot make the machine permanently output nothing.
+     */
+    private List<Block> getMiningOres(Level machineLevel){
+        ResourceLocation targetId=getMiningDimension();
+        if(targetId==null)return List.of();
+
+        if(targetId.equals(cachedOreDimension)&&!cachedDimensionOres.isEmpty()){
+            return cachedDimensionOres;
+        }
+
+        if(!(machineLevel instanceof ServerLevel currentServer)){
+            return getGlobalOres();
+        }
+
+        ResourceKey<Level> key=ResourceKey.create(Registries.DIMENSION,targetId);
+        ServerLevel target=currentServer.getServer().getLevel(key);
+        if(target==null)return List.of();
+
+        List<Block> found=new ArrayList<>();
+        BlockPos center=target.getSharedSpawnPos();
+
+        // Sample a 3x3 chunk area around the target dimension's spawn.
+        int cx=center.getX()>>4;
+        int cz=center.getZ()>>4;
+        int minY=target.getMinBuildHeight();
+        int maxY=target.getMaxBuildHeight();
+
+        for(int dx=-1;dx<=1;dx++){
+            for(int dz=-1;dz<=1;dz++){
+                int baseX=(cx+dx)<<4;
+                int baseZ=(cz+dz)<<4;
+                for(int x=0;x<16;x++){
+                    for(int z=0;z<16;z++){
+                        for(int y=minY;y<maxY;y++){
+                            BlockState state=target.getBlockState(new BlockPos(baseX+x,y,baseZ+z));
+                            Block block=state.getBlock();
+                            if(state.is(Tags.Blocks.ORES)
+                                    &&block.asItem()!=net.minecraft.world.item.Items.AIR
+                                    &&!found.contains(block)){
+                                found.add(block);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if(found.isEmpty()){
+            found.addAll(getGlobalOres());
+        }
+
+        cachedOreDimension=targetId;
+        cachedDimensionOres=List.copyOf(found);
+        return cachedDimensionOres;
+    }
+
+    private List<Block> getGlobalOres(){
+        List<Block> ores=new ArrayList<>();
+        for(Block b:net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValues()){
+            if(b.defaultBlockState().is(Tags.Blocks.ORES)
+                    &&b.asItem()!=net.minecraft.world.item.Items.AIR){
+                ores.add(b);
+            }
+        }
+        return ores;
     }
 
     private boolean canInsert(ItemStack s){return ItemHandlerHelper.insertItem(output,s.copy(),true).isEmpty();}
     private void insertResult(ItemStack s){ItemHandlerHelper.insertItem(output,s,false);}
+
     public int getUpgradeLevel(int slot){return upgrades.getStackInSlot(slot).isEmpty()?0:1;}
     public int getSpeedUpgradeLevel(){return getUpgradeLevel(0);}
     public int getYieldUpgradeLevel(){return getUpgradeLevel(1);}
     public int getPrecisionUpgradeLevel(){return getUpgradeLevel(2);}
     public boolean hasDimensionUpgrade(){return getUpgradeLevel(3)>0;}
+
     public ResourceLocation getMiningDimension(){
         return miningDimension==null&&level!=null?level.dimension().location():miningDimension;
     }
+
     public void setMiningDimension(ResourceLocation id){
         if(!hasDimensionUpgrade())return;
         miningDimension=id;
+        cachedOreDimension=null;
+        cachedDimensionOres=List.of();
         setChanged();
     }
+
     public int getEffectiveMiningInterval(){
         int b=INTERVAL[tier];
         return Math.max(10,b-getSpeedUpgradeLevel()*Math.max(5,b/10));
     }
+
     public int getEffectiveEnergyCost(){return COST[tier];}
     public int getTier(){return tier;}
     public int getEnergyStored(){return energyStorage.getEnergyStored();}
@@ -167,6 +264,8 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         structureValid=t.getBoolean("StructureValid");
         progress=t.getInt("MiningProgress");
         if(t.contains("MiningDimension"))miningDimension=ResourceLocation.tryParse(t.getString("MiningDimension"));
+        cachedOreDimension=null;
+        cachedDimensionOres=List.of();
     }
 
     public void invalidateCaps(){
