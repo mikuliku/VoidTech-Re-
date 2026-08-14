@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -79,11 +80,6 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     private int progress;
     private ResourceLocation miningDimension;
 
-    /*
-     * The ore pool is deliberately cached per machine/dimension.
-     * It is built from real blocks in the selected ServerLevel instead of
-     * using one global list for every dimension.
-     */
     private ResourceLocation cachedOrePoolDimension;
     private List<Block> cachedOrePool = List.of();
 
@@ -162,18 +158,20 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
 
     /**
      * Returns the actual server dimension being mined.
-     * Without the dimension upgrade, this is always the machine's own dimension.
-     * With the upgrade installed, it is the dimension selected by the player.
+     * Without the dimension upgrade, the machine always mines its own dimension.
+     * With the dimension upgrade installed, it mines the dimension selected by
+     * the player.
      */
     @Nullable
     private ServerLevel getMiningLevel() {
-        if (level == null || !level.isClientSide()) return null;
+        if (level == null || level.isClientSide()) return null;
 
-        if (!(level.getServer() instanceof net.minecraft.server.MinecraftServer server)) {
-            return null;
-        }
+        MinecraftServer server = level.getServer();
+        if (server == null) return null;
 
         ResourceLocation id = getMiningDimension();
+        if (id == null) return null;
+
         ResourceKey<Level> key =
                 ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, id);
 
@@ -181,11 +179,8 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     }
 
     /**
-     * Builds a dimension-specific ore pool by sampling the real blocks around
-     * the machine's X/Z coordinate in the target dimension.
-     *
-     * This keeps the system compatible with vanilla and modded ores without
-     * maintaining a hard-coded list of every possible mod dimension.
+     * Builds a dimension-specific ore pool by sampling real blocks around the
+     * machine's X/Z coordinate in the target dimension.
      */
     private List<Block> getOrePool(ServerLevel targetLevel) {
         ResourceLocation dimension = targetLevel.dimension().location();
@@ -196,16 +191,12 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
 
         Set<Block> found = new LinkedHashSet<>();
 
-        int centerChunkX = pos.getX() >> 4;
-        int centerChunkZ = pos.getZ() >> 4;
+        int centerChunkX = worldPosition.getX() >> 4;
+        int centerChunkZ = worldPosition.getZ() >> 4;
 
         int minY = Math.max(targetLevel.getMinBuildHeight(), -64);
         int maxY = Math.min(targetLevel.getMaxBuildHeight(), 320);
 
-        /*
-         * Sample a 3x3 chunk area. Four-block spacing keeps the first scan
-         * reasonably cheap while still finding common ore veins.
-         */
         for (int chunkX = centerChunkX - 1; chunkX <= centerChunkX + 1; chunkX++) {
             for (int chunkZ = centerChunkZ - 1; chunkZ <= centerChunkZ + 1; chunkZ++) {
                 int baseX = chunkX << 4;
@@ -229,11 +220,6 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
             }
         }
 
-        /*
-         * A custom dimension can have unusual generation around the sampled
-         * location. If nothing was found, fall back to the registry's ore
-         * blocks rather than making the machine completely unusable.
-         */
         if (found.isEmpty()) {
             for (Block block :
                     net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValues()) {
@@ -278,17 +264,23 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     }
 
     public ResourceLocation getMiningDimension() {
-        return miningDimension == null && level != null
+        if (level == null) return miningDimension;
+
+        // The dimension upgrade is required for cross-dimension mining.
+        if (!hasDimensionUpgrade()) {
+            return level.dimension().location();
+        }
+
+        return miningDimension == null
                 ? level.dimension().location()
                 : miningDimension;
     }
 
     public void setMiningDimension(ResourceLocation id) {
-        if (!hasDimensionUpgrade()) return;
+        if (!hasDimensionUpgrade() || id == null) return;
 
         miningDimension = id;
 
-        // Force the next mining operation to rebuild the pool for the new dimension.
         cachedOrePoolDimension = null;
         cachedOrePool = List.of();
 
