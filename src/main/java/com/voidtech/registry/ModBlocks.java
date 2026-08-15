@@ -36,6 +36,13 @@ public final class ModBlocks {
     public static final RegistryObject<Block> VOID_MINING_MACHINE_T5 = registerMachine("void_mining_machine_t5", 5);
     public static final RegistryObject<Block> VOID_MINING_MACHINE_T6 = registerMachine("void_mining_machine_t6", 6);
 
+    public static final RegistryObject<Block> VOID_FLUID_MACHINE_T1 = registerFluidMachine("void_fluid_machine_t1", 1);
+    public static final RegistryObject<Block> VOID_FLUID_MACHINE_T2 = registerFluidMachine("void_fluid_machine_t2", 2);
+    public static final RegistryObject<Block> VOID_FLUID_MACHINE_T3 = registerFluidMachine("void_fluid_machine_t3", 3);
+    public static final RegistryObject<Block> VOID_FLUID_MACHINE_T4 = registerFluidMachine("void_fluid_machine_t4", 4);
+    public static final RegistryObject<Block> VOID_FLUID_MACHINE_T5 = registerFluidMachine("void_fluid_machine_t5", 5);
+    public static final RegistryObject<Block> VOID_FLUID_MACHINE_T6 = registerFluidMachine("void_fluid_machine_t6", 6);
+
     public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T1 = registerEnergyInterface("void_energy_interface_t1", 1);
     public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T2 = registerEnergyInterface("void_energy_interface_t2", 2);
     public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T3 = registerEnergyInterface("void_energy_interface_t3", 3);
@@ -56,6 +63,12 @@ public final class ModBlocks {
     public static final RegistryObject<Block> VOID_FLUID_INTERFACE_T4 = registerFluidInterface("void_fluid_interface_t4", 4);
     public static final RegistryObject<Block> VOID_FLUID_INTERFACE_T5 = registerFluidInterface("void_fluid_interface_t5", 5);
     public static final RegistryObject<Block> VOID_FLUID_INTERFACE_T6 = registerFluidInterface("void_fluid_interface_t6", 6);
+
+    private static RegistryObject<Block> registerFluidMachine(String id, int tier) {
+        return BLOCKS.register(id, () -> new com.voidtech.block.VoidFluidMachineBlock(
+                BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_BLUE)
+                        .strength(5.0F, 10.0F).sound(SoundType.METAL), tier));
+    }
 
     private static RegistryObject<Block> registerMachine(String id, int tier) {
         return BLOCKS.register(id, () -> new VoidMiningMachineBlock(
