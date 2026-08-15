@@ -19,8 +19,20 @@ public final class VoidTechNetwork {
                     buffer.writeBlockPos(packet.pos());
                     buffer.writeResourceLocation(packet.dimension());
                 },
-                buffer -> new SetMiningDimensionPacket(buffer.readBlockPos(), buffer.readResourceLocation()),
+                buffer -> new SetMiningDimensionPacket(
+                        buffer.readBlockPos(),
+                        buffer.readResourceLocation()),
                 SetMiningDimensionPacket::handle);
+
+        CHANNEL.registerMessage(id++, SetFluidTypePacket.class,
+                (packet, buffer) -> {
+                    buffer.writeBlockPos(packet.pos());
+                    buffer.writeResourceLocation(packet.fluid());
+                },
+                buffer -> new SetFluidTypePacket(
+                        buffer.readBlockPos(),
+                        buffer.readResourceLocation()),
+                SetFluidTypePacket::handle);
     }
 
     private VoidTechNetwork() {}
