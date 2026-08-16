@@ -3,16 +3,16 @@ package com.voidtech.block.entity;
 import com.voidtech.fluid.VoidFluidCatalog;
 import com.voidtech.menu.VoidFluidMachineMenu;
 import com.voidtech.multiblock.VoidFluidStructure;
+import com.voidtech.multiblock.VoidMiningStructure;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -37,6 +37,8 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
     private static final int[] FLUID_PER_OPERATION = {0, 250, 350, 500, 750, 1000, 1500};
     private static final int[] ENERGY_PER_OPERATION = {0, 100, 180, 300, 450, 650, 900};
 
+    private static final int FLUID_TRANSFER_PER_INTERFACE = 4000;
+
     private final int tier;
     private int progress;
     private boolean structureValid;
@@ -51,49 +53,169 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         super(type, pos, state);
         this.tier = Math.max(1, Math.min(6, tier));
 
-        this.energyStorage = new EnergyStorage(ENERGY_CAPACITY[this.tier], ENERGY_TRANSFER[this.tier], ENERGY_TRANSFER[this.tier]) {
-            @Override public int receiveEnergy(int amount, boolean simulate) {
+        this.energyStorage = new EnergyStorage(
+                ENERGY_CAPACITY[this.tier],
+                ENERGY_TRANSFER[this.tier],
+                ENERGY_TRANSFER[this.tier]
+        ) {
+            @Override
+            public int receiveEnergy(int amount, boolean simulate) {
                 int received = super.receiveEnergy(amount, simulate);
-                if (!simulate && received > 0) setChanged();
+                if (!simulate && received > 0) {
+                    setChanged();
+                }
                 return received;
             }
-            @Override public int extractEnergy(int amount, boolean simulate) {
+
+            @Override
+            public int extractEnergy(int amount, boolean simulate) {
                 int extracted = super.extractEnergy(amount, simulate);
-                if (!simulate && extracted > 0) setChanged();
+                if (!simulate && extracted > 0) {
+                    setChanged();
+                }
                 return extracted;
             }
         };
         this.energyCapability = LazyOptional.of(() -> energyStorage);
 
         this.tank = new FluidTank(capacityFor(this.tier)) {
-            @Override protected void onContentsChanged() { setChanged(); }
+            @Override
+            protected void onContentsChanged() {
+                setChanged();
+            }
         };
         this.fluidCapability = LazyOptional.of(() -> tank);
     }
 
-    public static void serverTick(Level level, BlockPos pos, BlockState state, VoidFluidMachineBlockEntity machine) {
+    public static void serverTick(
+            Level level,
+            BlockPos pos,
+            BlockState state,
+            VoidFluidMachineBlockEntity machine
+    ) {
         if (level.getGameTime() % 10L == 0L) {
             machine.structureValid = VoidFluidStructure.isValid(level, pos, machine.tier);
         }
-        if (!machine.structureValid) return;
-        if (++machine.progress < INTERVAL[machine.tier]) return;
+
+        if (!machine.structureValid) {
+            return;
+        }
+
+        // Export buffered fluid to any valid fluid interface installed in the pyramid shell.
+        machine.pushFluidToInterfaces(level, pos);
+
+        if (++machine.progress < INTERVAL[machine.tier]) {
+            return;
+        }
+
         machine.progress = 0;
 
         int energyCost = ENERGY_PER_OPERATION[machine.tier];
         int amount = FLUID_PER_OPERATION[machine.tier];
-        if (machine.energyStorage.getEnergyStored() < energyCost) return;
+
+        if (machine.energyStorage.getEnergyStored() < energyCost) {
+            return;
+        }
 
         Fluid fluid = machine.getSelectedFluid();
-        if (fluid == Fluids.EMPTY || !fluid.defaultFluidState().isSource()) return;
+        if (fluid == Fluids.EMPTY || !fluid.defaultFluidState().isSource()) {
+            return;
+        }
 
         ResourceLocation selectedId = ForgeRegistries.FLUIDS.getKey(fluid);
-        if (selectedId == null || !VoidFluidCatalog.canProduce(selectedId, machine.tier)) return;
+        if (selectedId == null || !VoidFluidCatalog.canProduce(selectedId, machine.tier)) {
+            return;
+        }
 
-        if (machine.tank.fill(new FluidStack(fluid, amount), IFluidHandler.FluidAction.SIMULATE) != amount) return;
+        if (machine.tank.fill(
+                new FluidStack(fluid, amount),
+                IFluidHandler.FluidAction.SIMULATE
+        ) != amount) {
+            return;
+        }
 
         machine.energyStorage.extractEnergy(energyCost, false);
-        machine.tank.fill(new FluidStack(fluid, amount), IFluidHandler.FluidAction.EXECUTE);
+        machine.tank.fill(
+                new FluidStack(fluid, amount),
+                IFluidHandler.FluidAction.EXECUTE
+        );
         machine.setChanged();
+
+        // Try an immediate export so newly generated fluid does not have to wait
+        // for the next server tick.
+        machine.pushFluidToInterfaces(level, pos);
+    }
+
+    private void pushFluidToInterfaces(Level level, BlockPos controllerPos) {
+        if (tank.isEmpty()) {
+            return;
+        }
+
+        int radius = VoidMiningStructure.radiusFor(tier);
+        int height = VoidMiningStructure.heightFor(tier);
+
+        FluidStack available = tank.getFluid();
+        if (available.isEmpty()) {
+            return;
+        }
+
+        for (int y = 0; y < height && !tank.isEmpty(); y++) {
+            int layerRadius = radius - y;
+            if (layerRadius < 1) {
+                continue;
+            }
+
+            for (int x = -layerRadius; x <= layerRadius && !tank.isEmpty(); x++) {
+                for (int z = -layerRadius; z <= layerRadius && !tank.isEmpty(); z++) {
+                    boolean shell = Math.abs(x) == layerRadius || Math.abs(z) == layerRadius;
+                    if (!shell) {
+                        continue;
+                    }
+
+                    BlockPos targetPos = controllerPos.offset(x, y + 1, z);
+                    BlockEntity target = level.getBlockEntity(targetPos);
+
+                    if (!(target instanceof VoidFluidInterfaceBlockEntity interfaceEntity)) {
+                        continue;
+                    }
+
+                    if (interfaceEntity.getTier() > tier) {
+                        continue;
+                    }
+
+                    FluidStack toSend = tank.getFluid().copy();
+                    toSend.setAmount(Math.min(
+                            toSend.getAmount(),
+                            FLUID_TRANSFER_PER_INTERFACE
+                    ));
+
+                    IFluidHandler handler = interfaceEntity.getTank();
+
+                    int accepted = handler.fill(
+                            toSend,
+                            IFluidHandler.FluidAction.SIMULATE
+                    );
+
+                    if (accepted <= 0) {
+                        continue;
+                    }
+
+                    accepted = Math.min(accepted, toSend.getAmount());
+
+                    FluidStack extracted = tank.drain(
+                            accepted,
+                            IFluidHandler.FluidAction.EXECUTE
+                    );
+
+                    if (!extracted.isEmpty()) {
+                        handler.fill(
+                                extracted,
+                                IFluidHandler.FluidAction.EXECUTE
+                        );
+                    }
+                }
+            }
+        }
     }
 
     public Fluid getSelectedFluid() {
@@ -111,13 +233,32 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
 
     public void setSelectedFluid(ResourceLocation id) {
         Fluid fluid = ForgeRegistries.FLUIDS.getValue(id);
-        if (fluid == null || fluid == Fluids.EMPTY || !fluid.defaultFluidState().isSource()) return;
-        if (!VoidFluidCatalog.canProduce(id, tier)) return;
-        if (!tank.isEmpty() && tank.getFluid().getFluid() != fluid) return;
+
+        if (fluid == null
+                || fluid == Fluids.EMPTY
+                || !fluid.defaultFluidState().isSource()) {
+            return;
+        }
+
+        if (!VoidFluidCatalog.canProduce(id, tier)) {
+            return;
+        }
+
+        if (!tank.isEmpty() && tank.getFluid().getFluid() != fluid) {
+            return;
+        }
 
         selectedFluid = id;
         setChanged();
-        if (level != null) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+
+        if (level != null) {
+            level.sendBlockUpdated(
+                    worldPosition,
+                    getBlockState(),
+                    getBlockState(),
+                    3
+            );
+        }
     }
 
     public static int capacityFor(int tier) {
@@ -131,13 +272,36 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         };
     }
 
-    public int getTier() { return tier; }
-    public int getProgress() { return progress; }
-    public int getProgressPercent() { return Math.min(100, progress * 100 / Math.max(1, INTERVAL[tier])); }
-    public int getEnergyStored() { return energyStorage.getEnergyStored(); }
-    public int getMaxEnergyStored() { return energyStorage.getMaxEnergyStored(); }
-    public boolean isStructureValid() { return structureValid; }
-    public FluidTank getTank() { return tank; }
+    public int getTier() {
+        return tier;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
+    public int getProgressPercent() {
+        return Math.min(
+                100,
+                progress * 100 / Math.max(1, INTERVAL[tier])
+        );
+    }
+
+    public int getEnergyStored() {
+        return energyStorage.getEnergyStored();
+    }
+
+    public int getMaxEnergyStored() {
+        return energyStorage.getMaxEnergyStored();
+    }
+
+    public boolean isStructureValid() {
+        return structureValid;
+    }
+
+    public FluidTank getTank() {
+        return tank;
+    }
 
     @Override
     public Component getDisplayName() {
@@ -147,7 +311,8 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
     @Override
     public AbstractContainerMenu createMenu(int id, Inventory inv, Player player) {
         ContainerData data = new ContainerData() {
-            @Override public int get(int index) {
+            @Override
+            public int get(int index) {
                 return switch (index) {
                     case 0 -> energyStorage.getEnergyStored();
                     case 1 -> energyStorage.getMaxEnergyStored();
@@ -157,22 +322,46 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
                     default -> 0;
                 };
             }
-            @Override public void set(int index, int value) {}
-            @Override public int getCount() { return 5; }
+
+            @Override
+            public void set(int index, int value) {
+            }
+
+            @Override
+            public int getCount() {
+                return 5;
+            }
         };
-        return new VoidFluidMachineMenu(id, inv, tier, data, worldPosition);
+
+        return new VoidFluidMachineMenu(
+                id,
+                inv,
+                tier,
+                data,
+                worldPosition
+        );
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable net.minecraft.core.Direction side) {
-        if (capability == ForgeCapabilities.ENERGY) return energyCapability.cast();
-        if (capability == ForgeCapabilities.FLUID_HANDLER) return fluidCapability.cast();
+    public <T> LazyOptional<T> getCapability(
+            Capability<T> capability,
+            @Nullable net.minecraft.core.Direction side
+    ) {
+        if (capability == ForgeCapabilities.ENERGY) {
+            return energyCapability.cast();
+        }
+
+        if (capability == ForgeCapabilities.FLUID_HANDLER) {
+            return fluidCapability.cast();
+        }
+
         return super.getCapability(capability, side);
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
+
         tag.put("Energy", energyStorage.serializeNBT());
         tag.put("Fluid", tank.writeToNBT(new CompoundTag()));
         tag.putInt("Progress", progress);
@@ -183,13 +372,26 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        if (tag.contains("Energy")) energyStorage.deserializeNBT(tag.get("Energy"));
-        if (tag.contains("Fluid")) tank.readFromNBT(tag.getCompound("Fluid"));
+
+        if (tag.contains("Energy")) {
+            energyStorage.deserializeNBT(tag.get("Energy"));
+        }
+
+        if (tag.contains("Fluid")) {
+            tank.readFromNBT(tag.getCompound("Fluid"));
+        }
+
         progress = tag.getInt("Progress");
         structureValid = tag.getBoolean("StructureValid");
+
         if (tag.contains("SelectedFluid")) {
-            ResourceLocation parsed = ResourceLocation.tryParse(tag.getString("SelectedFluid"));
-            if (parsed != null) selectedFluid = parsed;
+            ResourceLocation parsed = ResourceLocation.tryParse(
+                    tag.getString("SelectedFluid")
+            );
+
+            if (parsed != null) {
+                selectedFluid = parsed;
+            }
         }
     }
 
