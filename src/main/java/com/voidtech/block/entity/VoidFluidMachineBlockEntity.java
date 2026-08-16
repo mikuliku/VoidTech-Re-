@@ -1,13 +1,14 @@
 package com.voidtech.block.entity;
 
+import com.voidtech.fluid.VoidFluidCatalog;
 import com.voidtech.menu.VoidFluidMachineMenu;
 import com.voidtech.multiblock.VoidFluidStructure;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
@@ -85,6 +86,9 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         Fluid fluid = machine.getSelectedFluid();
         if (fluid == Fluids.EMPTY || !fluid.defaultFluidState().isSource()) return;
 
+        ResourceLocation selectedId = ForgeRegistries.FLUIDS.getKey(fluid);
+        if (selectedId == null || !VoidFluidCatalog.canProduce(selectedId, machine.tier)) return;
+
         if (machine.tank.fill(new FluidStack(fluid, amount), IFluidHandler.FluidAction.SIMULATE) != amount) return;
 
         machine.energyStorage.extractEnergy(energyCost, false);
@@ -101,10 +105,14 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         return selectedFluid;
     }
 
+    public boolean canProduceSelectedFluid() {
+        return VoidFluidCatalog.canProduce(selectedFluid, tier);
+    }
+
     public void setSelectedFluid(ResourceLocation id) {
         Fluid fluid = ForgeRegistries.FLUIDS.getValue(id);
         if (fluid == null || fluid == Fluids.EMPTY || !fluid.defaultFluidState().isSource()) return;
-
+        if (!VoidFluidCatalog.canProduce(id, tier)) return;
         if (!tank.isEmpty() && tank.getFluid().getFluid() != fluid) return;
 
         selectedFluid = id;
