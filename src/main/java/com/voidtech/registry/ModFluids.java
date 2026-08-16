@@ -2,10 +2,11 @@ package com.voidtech.registry;
 
 import com.voidtech.VoidTech;
 import com.voidtech.fluid.VoidFluidTypes;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
 import net.minecraftforge.registries.DeferredRegister;
@@ -22,7 +23,8 @@ public final class ModFluids {
     public static final DeferredRegister<Fluid> FLUIDS =
             DeferredRegister.create(ForgeRegistries.FLUIDS, VoidTech.MOD_ID);
 
-    public static final DeferredRegister<LiquidBlock> FLUID_BLOCKS =
+    // ForgeRegistries.BLOCKS is a registry of Block, not LiquidBlock.
+    public static final DeferredRegister<Block> FLUID_BLOCKS =
             DeferredRegister.create(ForgeRegistries.BLOCKS, VoidTech.MOD_ID);
 
     public static final RegistryObject<FluidType> VOID_ORIGINAL_TYPE =
@@ -53,32 +55,32 @@ public final class ModFluids {
 
     public static final RegistryObject<ForgeFlowingFluid.Source> VOID_ORIGINAL = ORIGINAL.source;
     public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_ORIGINAL_FLOWING = ORIGINAL.flowing;
-    public static final RegistryObject<LiquidBlock> VOID_ORIGINAL_BLOCK = ORIGINAL.block;
+    public static final RegistryObject<Block> VOID_ORIGINAL_BLOCK = ORIGINAL.block;
     public static final ForgeFlowingFluid.Properties VOID_ORIGINAL_PROPERTIES = ORIGINAL.properties;
 
     public static final RegistryObject<ForgeFlowingFluid.Source> VOID_IGNITED = IGNITED.source;
     public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_IGNITED_FLOWING = IGNITED.flowing;
-    public static final RegistryObject<LiquidBlock> VOID_IGNITED_BLOCK = IGNITED.block;
+    public static final RegistryObject<Block> VOID_IGNITED_BLOCK = IGNITED.block;
     public static final ForgeFlowingFluid.Properties VOID_IGNITED_PROPERTIES = IGNITED.properties;
 
     public static final RegistryObject<ForgeFlowingFluid.Source> VOID_METAL_MELT = METAL_MELT.source;
     public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_METAL_MELT_FLOWING = METAL_MELT.flowing;
-    public static final RegistryObject<LiquidBlock> VOID_METAL_MELT_BLOCK = METAL_MELT.block;
+    public static final RegistryObject<Block> VOID_METAL_MELT_BLOCK = METAL_MELT.block;
     public static final ForgeFlowingFluid.Properties VOID_METAL_PROPERTIES = METAL_MELT.properties;
 
     public static final RegistryObject<ForgeFlowingFluid.Source> VOID_ESSENCE = ESSENCE.source;
     public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_ESSENCE_FLOWING = ESSENCE.flowing;
-    public static final RegistryObject<LiquidBlock> VOID_ESSENCE_BLOCK = ESSENCE.block;
+    public static final RegistryObject<Block> VOID_ESSENCE_BLOCK = ESSENCE.block;
     public static final ForgeFlowingFluid.Properties VOID_ESSENCE_PROPERTIES = ESSENCE.properties;
 
     public static final RegistryObject<ForgeFlowingFluid.Source> VOID_ENERGY = ENERGY.source;
     public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_ENERGY_FLOWING = ENERGY.flowing;
-    public static final RegistryObject<LiquidBlock> VOID_ENERGY_BLOCK = ENERGY.block;
+    public static final RegistryObject<Block> VOID_ENERGY_BLOCK = ENERGY.block;
     public static final ForgeFlowingFluid.Properties VOID_ENERGY_PROPERTIES = ENERGY.properties;
 
     public static final RegistryObject<ForgeFlowingFluid.Source> VOID_CONCENTRATE = CONCENTRATE.source;
     public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_CONCENTRATE_FLOWING = CONCENTRATE.flowing;
-    public static final RegistryObject<LiquidBlock> VOID_CONCENTRATE_BLOCK = CONCENTRATE.block;
+    public static final RegistryObject<Block> VOID_CONCENTRATE_BLOCK = CONCENTRATE.block;
     public static final ForgeFlowingFluid.Properties VOID_CONCENTRATE_PROPERTIES = CONCENTRATE.properties;
 
     private static FluidEntry registerFluid(
@@ -104,7 +106,7 @@ public final class ModFluids {
                 FLUIDS.register(name + "_flowing",
                         () -> new ForgeFlowingFluid.Flowing(properties));
 
-        RegistryObject<LiquidBlock> block =
+        RegistryObject<Block> block =
                 FLUID_BLOCKS.register(name, () -> new LiquidBlock(
                         source.get(),
                         BlockBehaviour.Properties.of()
@@ -116,7 +118,8 @@ public final class ModFluids {
 
         sourceWrapper.set(source);
         flowingWrapper.set(flowing);
-        blockWrapper.set(block);
+        // RegistryObject<Block> is not a Supplier<LiquidBlock>; bridge it explicitly.
+        blockWrapper.set(() -> (LiquidBlock) block.get());
 
         return new FluidEntry(source, flowing, block, properties);
     }
@@ -124,13 +127,13 @@ public final class ModFluids {
     private static final class FluidEntry {
         private final RegistryObject<ForgeFlowingFluid.Source> source;
         private final RegistryObject<ForgeFlowingFluid.Flowing> flowing;
-        private final RegistryObject<LiquidBlock> block;
+        private final RegistryObject<Block> block;
         private final ForgeFlowingFluid.Properties properties;
 
         private FluidEntry(
                 RegistryObject<ForgeFlowingFluid.Source> source,
                 RegistryObject<ForgeFlowingFluid.Flowing> flowing,
-                RegistryObject<LiquidBlock> block,
+                RegistryObject<Block> block,
                 ForgeFlowingFluid.Properties properties) {
             this.source = source;
             this.flowing = flowing;
@@ -148,7 +151,8 @@ public final class ModFluids {
 
         @Override
         public T get() {
-            return Objects.requireNonNull(supplier, "Fluid registry supplier has not been initialized").get();
+            return Objects.requireNonNull(
+                    supplier, "Fluid registry supplier has not been initialized").get();
         }
     }
 
