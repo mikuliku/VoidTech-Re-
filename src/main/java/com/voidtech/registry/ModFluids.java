@@ -2,23 +2,27 @@ package com.voidtech.registry;
 
 import com.voidtech.VoidTech;
 import com.voidtech.fluid.VoidFluidTypes;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.Objects;
+import java.util.function.Supplier;
+
 public final class ModFluids {
     public static final DeferredRegister<FluidType> FLUID_TYPES =
             DeferredRegister.create(ForgeRegistries.Keys.FLUID_TYPES, VoidTech.MOD_ID);
+
     public static final DeferredRegister<Fluid> FLUIDS =
             DeferredRegister.create(ForgeRegistries.FLUIDS, VoidTech.MOD_ID);
-    public static final DeferredRegister<Block> FLUID_BLOCKS =
+
+    public static final DeferredRegister<LiquidBlock> FLUID_BLOCKS =
             DeferredRegister.create(ForgeRegistries.BLOCKS, VoidTech.MOD_ID);
 
     public static final RegistryObject<FluidType> VOID_ORIGINAL_TYPE =
@@ -34,69 +38,118 @@ public final class ModFluids {
     public static final RegistryObject<FluidType> VOID_CONCENTRATE_TYPE =
             FLUID_TYPES.register("void_concentrate", () -> VoidFluidTypes.CONCENTRATE_PROPERTIES);
 
-    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_ORIGINAL =
-            FLUIDS.register("void_original", () -> new ForgeFlowingFluid.Source(VOID_ORIGINAL_PROPERTIES));
-    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_ORIGINAL_FLOWING =
-            FLUIDS.register("void_original_flowing", () -> new ForgeFlowingFluid.Flowing(VOID_ORIGINAL_PROPERTIES));
+    private static final FluidEntry ORIGINAL =
+            registerFluid("void_original", VOID_ORIGINAL_TYPE, 4, 1);
+    private static final FluidEntry IGNITED =
+            registerFluid("void_ignited", VOID_IGNITED_TYPE, 4, 1);
+    private static final FluidEntry METAL_MELT =
+            registerFluid("void_metal_melt", VOID_METAL_TYPE, 2, 2);
+    private static final FluidEntry ESSENCE =
+            registerFluid("void_essence", VOID_ESSENCE_TYPE, 4, 1);
+    private static final FluidEntry ENERGY =
+            registerFluid("void_energy", VOID_ENERGY_TYPE, 4, 1);
+    private static final FluidEntry CONCENTRATE =
+            registerFluid("void_concentrate", VOID_CONCENTRATE_TYPE, 2, 2);
 
-    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_IGNITED =
-            FLUIDS.register("void_ignited", () -> new ForgeFlowingFluid.Source(VOID_IGNITED_PROPERTIES));
-    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_IGNITED_FLOWING =
-            FLUIDS.register("void_ignited_flowing", () -> new ForgeFlowingFluid.Flowing(VOID_IGNITED_PROPERTIES));
+    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_ORIGINAL = ORIGINAL.source;
+    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_ORIGINAL_FLOWING = ORIGINAL.flowing;
+    public static final RegistryObject<LiquidBlock> VOID_ORIGINAL_BLOCK = ORIGINAL.block;
+    public static final ForgeFlowingFluid.Properties VOID_ORIGINAL_PROPERTIES = ORIGINAL.properties;
 
-    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_METAL_MELT =
-            FLUIDS.register("void_metal_melt", () -> new ForgeFlowingFluid.Source(VOID_METAL_PROPERTIES));
-    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_METAL_MELT_FLOWING =
-            FLUIDS.register("void_metal_melt_flowing", () -> new ForgeFlowingFluid.Flowing(VOID_METAL_PROPERTIES));
+    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_IGNITED = IGNITED.source;
+    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_IGNITED_FLOWING = IGNITED.flowing;
+    public static final RegistryObject<LiquidBlock> VOID_IGNITED_BLOCK = IGNITED.block;
+    public static final ForgeFlowingFluid.Properties VOID_IGNITED_PROPERTIES = IGNITED.properties;
 
-    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_ESSENCE =
-            FLUIDS.register("void_essence", () -> new ForgeFlowingFluid.Source(VOID_ESSENCE_PROPERTIES));
-    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_ESSENCE_FLOWING =
-            FLUIDS.register("void_essence_flowing", () -> new ForgeFlowingFluid.Flowing(VOID_ESSENCE_PROPERTIES));
+    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_METAL_MELT = METAL_MELT.source;
+    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_METAL_MELT_FLOWING = METAL_MELT.flowing;
+    public static final RegistryObject<LiquidBlock> VOID_METAL_MELT_BLOCK = METAL_MELT.block;
+    public static final ForgeFlowingFluid.Properties VOID_METAL_PROPERTIES = METAL_MELT.properties;
 
-    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_ENERGY =
-            FLUIDS.register("void_energy", () -> new ForgeFlowingFluid.Source(VOID_ENERGY_PROPERTIES));
-    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_ENERGY_FLOWING =
-            FLUIDS.register("void_energy_flowing", () -> new ForgeFlowingFluid.Flowing(VOID_ENERGY_PROPERTIES));
+    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_ESSENCE = ESSENCE.source;
+    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_ESSENCE_FLOWING = ESSENCE.flowing;
+    public static final RegistryObject<LiquidBlock> VOID_ESSENCE_BLOCK = ESSENCE.block;
+    public static final ForgeFlowingFluid.Properties VOID_ESSENCE_PROPERTIES = ESSENCE.properties;
 
-    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_CONCENTRATE =
-            FLUIDS.register("void_concentrate", () -> new ForgeFlowingFluid.Source(VOID_CONCENTRATE_PROPERTIES));
-    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_CONCENTRATE_FLOWING =
-            FLUIDS.register("void_concentrate_flowing", () -> new ForgeFlowingFluid.Flowing(VOID_CONCENTRATE_PROPERTIES));
+    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_ENERGY = ENERGY.source;
+    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_ENERGY_FLOWING = ENERGY.flowing;
+    public static final RegistryObject<LiquidBlock> VOID_ENERGY_BLOCK = ENERGY.block;
+    public static final ForgeFlowingFluid.Properties VOID_ENERGY_PROPERTIES = ENERGY.properties;
 
-    public static final RegistryObject<Block> VOID_ORIGINAL_BLOCK = registerFluidBlock("void_original", VOID_ORIGINAL);
-    public static final RegistryObject<Block> VOID_IGNITED_BLOCK = registerFluidBlock("void_ignited", VOID_IGNITED);
-    public static final RegistryObject<Block> VOID_METAL_MELT_BLOCK = registerFluidBlock("void_metal_melt", VOID_METAL_MELT);
-    public static final RegistryObject<Block> VOID_ESSENCE_BLOCK = registerFluidBlock("void_essence", VOID_ESSENCE);
-    public static final RegistryObject<Block> VOID_ENERGY_BLOCK = registerFluidBlock("void_energy", VOID_ENERGY);
-    public static final RegistryObject<Block> VOID_CONCENTRATE_BLOCK = registerFluidBlock("void_concentrate", VOID_CONCENTRATE);
+    public static final RegistryObject<ForgeFlowingFluid.Source> VOID_CONCENTRATE = CONCENTRATE.source;
+    public static final RegistryObject<ForgeFlowingFluid.Flowing> VOID_CONCENTRATE_FLOWING = CONCENTRATE.flowing;
+    public static final RegistryObject<LiquidBlock> VOID_CONCENTRATE_BLOCK = CONCENTRATE.block;
+    public static final ForgeFlowingFluid.Properties VOID_CONCENTRATE_PROPERTIES = CONCENTRATE.properties;
 
-    public static final ForgeFlowingFluid.Properties VOID_ORIGINAL_PROPERTIES =
-            new ForgeFlowingFluid.Properties(VOID_ORIGINAL_TYPE, VOID_ORIGINAL, VOID_ORIGINAL_FLOWING)
-                    .slopeFindDistance(4).levelDecreasePerBlock(1).block(VOID_ORIGINAL_BLOCK);
-    public static final ForgeFlowingFluid.Properties VOID_IGNITED_PROPERTIES =
-            new ForgeFlowingFluid.Properties(VOID_IGNITED_TYPE, VOID_IGNITED, VOID_IGNITED_FLOWING)
-                    .slopeFindDistance(4).levelDecreasePerBlock(1).block(VOID_IGNITED_BLOCK);
-    public static final ForgeFlowingFluid.Properties VOID_METAL_PROPERTIES =
-            new ForgeFlowingFluid.Properties(VOID_METAL_TYPE, VOID_METAL_MELT, VOID_METAL_MELT_FLOWING)
-                    .slopeFindDistance(2).levelDecreasePerBlock(2).block(VOID_METAL_MELT_BLOCK);
-    public static final ForgeFlowingFluid.Properties VOID_ESSENCE_PROPERTIES =
-            new ForgeFlowingFluid.Properties(VOID_ESSENCE_TYPE, VOID_ESSENCE, VOID_ESSENCE_FLOWING)
-                    .slopeFindDistance(4).levelDecreasePerBlock(1).block(VOID_ESSENCE_BLOCK);
-    public static final ForgeFlowingFluid.Properties VOID_ENERGY_PROPERTIES =
-            new ForgeFlowingFluid.Properties(VOID_ENERGY_TYPE, VOID_ENERGY, VOID_ENERGY_FLOWING)
-                    .slopeFindDistance(4).levelDecreasePerBlock(1).block(VOID_ENERGY_BLOCK);
-    public static final ForgeFlowingFluid.Properties VOID_CONCENTRATE_PROPERTIES =
-            new ForgeFlowingFluid.Properties(VOID_CONCENTRATE_TYPE, VOID_CONCENTRATE, VOID_CONCENTRATE_FLOWING)
-                    .slopeFindDistance(2).levelDecreasePerBlock(2).block(VOID_CONCENTRATE_BLOCK);
+    private static FluidEntry registerFluid(
+            String name,
+            RegistryObject<FluidType> fluidType,
+            int slopeFindDistance,
+            int levelDecreasePerBlock) {
 
-    private static RegistryObject<Block> registerFluidBlock(
-            String name, RegistryObject<? extends ForgeFlowingFluid.Source> source) {
-        return FLUID_BLOCKS.register(name, () -> new LiquidBlock(
-                source.get(),
-                BlockBehaviour.Properties.of()
-                        .mapColor(MapColor.COLOR_LIGHT_BLUE)
-                        .replaceable().noCollission().strength(100.0F).noLootTable()));
+        SupplierWrapper<ForgeFlowingFluid.Source> sourceWrapper = new SupplierWrapper<>();
+        SupplierWrapper<ForgeFlowingFluid.Flowing> flowingWrapper = new SupplierWrapper<>();
+        SupplierWrapper<LiquidBlock> blockWrapper = new SupplierWrapper<>();
+
+        ForgeFlowingFluid.Properties properties =
+                new ForgeFlowingFluid.Properties(fluidType, sourceWrapper, flowingWrapper)
+                        .slopeFindDistance(slopeFindDistance)
+                        .levelDecreasePerBlock(levelDecreasePerBlock)
+                        .block(blockWrapper);
+
+        RegistryObject<ForgeFlowingFluid.Source> source =
+                FLUIDS.register(name, () -> new ForgeFlowingFluid.Source(properties));
+
+        RegistryObject<ForgeFlowingFluid.Flowing> flowing =
+                FLUIDS.register(name + "_flowing",
+                        () -> new ForgeFlowingFluid.Flowing(properties));
+
+        RegistryObject<LiquidBlock> block =
+                FLUID_BLOCKS.register(name, () -> new LiquidBlock(
+                        source.get(),
+                        BlockBehaviour.Properties.of()
+                                .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                                .replaceable()
+                                .noCollission()
+                                .strength(100.0F)
+                                .noLootTable()));
+
+        sourceWrapper.set(source);
+        flowingWrapper.set(flowing);
+        blockWrapper.set(block);
+
+        return new FluidEntry(source, flowing, block, properties);
+    }
+
+    private static final class FluidEntry {
+        private final RegistryObject<ForgeFlowingFluid.Source> source;
+        private final RegistryObject<ForgeFlowingFluid.Flowing> flowing;
+        private final RegistryObject<LiquidBlock> block;
+        private final ForgeFlowingFluid.Properties properties;
+
+        private FluidEntry(
+                RegistryObject<ForgeFlowingFluid.Source> source,
+                RegistryObject<ForgeFlowingFluid.Flowing> flowing,
+                RegistryObject<LiquidBlock> block,
+                ForgeFlowingFluid.Properties properties) {
+            this.source = source;
+            this.flowing = flowing;
+            this.block = block;
+            this.properties = properties;
+        }
+    }
+
+    private static final class SupplierWrapper<T> implements Supplier<T> {
+        private Supplier<T> supplier;
+
+        private void set(Supplier<T> supplier) {
+            this.supplier = Objects.requireNonNull(supplier);
+        }
+
+        @Override
+        public T get() {
+            return Objects.requireNonNull(supplier, "Fluid registry supplier has not been initialized").get();
+        }
     }
 
     private ModFluids() {}
