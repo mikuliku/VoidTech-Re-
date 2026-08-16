@@ -17,6 +17,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class VoidFluidSelectionScreen extends Screen {
+    private static final int PAGE_SIZE = 10;
+
     private final Screen parent;
     private final BlockPos machinePos;
     private final List<ResourceLocation> fluids = new ArrayList<>();
@@ -31,12 +33,14 @@ public class VoidFluidSelectionScreen extends Screen {
     @Override
     protected void init() {
         fluids.clear();
+
         ForgeRegistries.FLUIDS.getEntries().stream()
                 .filter(entry -> entry.getValue().defaultFluidState().isSource())
                 .map(entry -> entry.getKey().location())
                 .sorted(Comparator.comparing(ResourceLocation::toString))
                 .forEach(fluids::add);
 
+        page = Math.max(0, Math.min(page, maxPage()));
         rebuildButtons();
     }
 
@@ -46,9 +50,9 @@ public class VoidFluidSelectionScreen extends Screen {
         int width = 260;
         int left = (this.width - width) / 2;
         int startY = 38;
-        int maxRows = Math.min(10, fluids.size());
-        int start = page * 10;
-        int end = Math.min(start + maxRows, fluids.size());
+
+        int start = page * PAGE_SIZE;
+        int end = Math.min(start + PAGE_SIZE, fluids.size());
 
         for (int i = start; i < end; i++) {
             ResourceLocation id = fluids.get(i);
@@ -60,7 +64,12 @@ public class VoidFluidSelectionScreen extends Screen {
                     : Component.literal(id.toString());
 
             Button button = Button.builder(name, b -> {
-                VoidTechNetwork.CHANNEL.sendToServer(new SetFluidTypePacket(machinePos, id));
+                if (!unlocked) {
+                    return;
+                }
+
+                VoidTechNetwork.CHANNEL.sendToServer(
+                        new SetFluidTypePacket(machinePos, id));
                 Minecraft.getInstance().setScreen(parent);
             }).bounds(left, startY + row * 23, width, 20).build();
 
@@ -68,26 +77,40 @@ public class VoidFluidSelectionScreen extends Screen {
             addRenderableWidget(button);
         }
 
+        int navY = height - 30;
+
         if (page > 0) {
-            addRenderableWidget(Button.builder(Component.translatable("gui.voidtech.previous"),
-                    b -> { page--; rebuildButtons(); })
-                    .bounds(left, height - 45, 105, 20).build());
+            addRenderableWidget(Button.builder(
+                    Component.translatable("gui.voidtech.previous"),
+                    b -> {
+                        page--;
+                        rebuildButtons();
+                    }).bounds(left, navY, 80, 20).build());
         }
 
-        if ((page + 1) * 10 < fluids.size()) {
-            addRenderableWidget(Button.builder(Component.translatable("gui.voidtech.next"),
-                    b -> { page++; rebuildButtons(); })
-                    .bounds(left + 155, height - 45, 105, 20).build());
-        }
-
-        addRenderableWidget(Button.builder(Component.translatable("gui.voidtech.back"),
+        addRenderableWidget(Button.builder(
+                Component.translatable("gui.voidtech.back"),
                 b -> Minecraft.getInstance().setScreen(parent))
-                .bounds(left, height - 45, 105, 20).build());
+                .bounds(left + 90, navY, 80, 20)
+                .build());
+
+        if (page < maxPage()) {
+            addRenderableWidget(Button.builder(
+                    Component.translatable("gui.voidtech.next"),
+                    b -> {
+                        page++;
+                        rebuildButtons();
+                    }).bounds(left + 180, navY, 80, 20).build());
+        }
+    }
+
+    private int maxPage() {
+        return Math.max(0, (fluids.size() - 1) / PAGE_SIZE);
     }
 
     private int getMachineTier() {
         if (parent instanceof VoidFluidMachineScreen screen) {
-            return screen.getMenu().getTier();
+            return screen.getMachineTier();
         }
         return 1;
     }
