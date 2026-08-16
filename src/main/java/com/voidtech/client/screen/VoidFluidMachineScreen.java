@@ -18,17 +18,26 @@ public class VoidFluidMachineScreen extends AbstractContainerScreen<VoidFluidMac
     @Override
     protected void init() {
         super.init();
+
         addRenderableWidget(Button.builder(
-                Component.translatable("gui.voidtech.select_fluid"),
+                Component.literal("选择流体"),
                 button -> Minecraft.getInstance().setScreen(
                         new VoidFluidSelectionScreen(this, menu.getMachinePos())))
                 .bounds(leftPos + 38, topPos + 106, 100, 20)
                 .build());
+
+        if (menu.hasDimensionUpgrade()) {
+            addRenderableWidget(Button.builder(
+                    Component.literal("选择目标维度"),
+                    button -> Minecraft.getInstance().setScreen(
+                            new VoidFluidDimensionSelectionScreen(
+                                    this,
+                                    menu.getMachinePos())))
+                    .bounds(leftPos + 38, topPos + 84, 100, 20)
+                    .build());
+        }
     }
 
-    /**
-     * Exposes the machine tier to the separate fluid-selection screen.
-     */
     public int getMachineTier() {
         return menu.getTier();
     }
@@ -51,25 +60,16 @@ public class VoidFluidMachineScreen extends AbstractContainerScreen<VoidFluidMac
         g.fill(x + 152, y + 20, x + 164, y + 92, 0xFF26343B);
         g.fill(x + 152, y + 92 - fh, x + 164, y + 92, 0xFF58A6FF);
 
-        g.fill(x + 38, y + 52, x + 138, y + 62, 0xFF26343B);
         int p = Math.max(0, Math.min(menu.getProgress(), 100));
+        g.fill(x + 38, y + 52, x + 138, y + 62, 0xFF26343B);
         g.fill(x + 38, y + 52, x + 38 + p, y + 62, 0xFF6CC8FF);
-
-        g.fill(x + 38, y + 72, x + 138, y + 78,
-                menu.isStructureValid() ? 0xFF55DD88 : 0xFFFF6666);
     }
 
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
         g.drawString(font, Component.translatable("menu.voidtech.void_fluid_machine"),
                 8, 6, 0xFFFFFF, false);
-        g.drawString(font, Component.translatable("gui.voidtech.tier", menu.getTier()),
+        g.drawString(font, Component.literal("T" + menu.getTier()),
                 38, 20, 0xD7EFFF, false);
-        g.drawString(font, Component.translatable("gui.voidtech.energy",
-                        menu.getEnergyStored(), menu.getMaxEnergyStored()),
-                30, 84, 0xBDE8FF, false);
-        g.drawString(font, Component.translatable("gui.voidtech.fluid",
-                        menu.getFluidAmount(), menu.getFluidCapacity()),
-                30, 94, 0xBDE8FF, false);
     }
 }
