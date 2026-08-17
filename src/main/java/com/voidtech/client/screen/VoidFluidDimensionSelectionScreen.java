@@ -12,31 +12,40 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class VoidFluidDimensionSelectionScreen extends Screen {
     private final Screen parent;
     private final BlockPos machinePos;
-    private final List<ResourceLocation> dimensions;
+    private final List<ResourceLocation> dimensions = new ArrayList<>();
     private int page;
 
     public VoidFluidDimensionSelectionScreen(Screen parent, BlockPos machinePos) {
         super(Component.literal("选择目标维度"));
         this.parent = parent;
         this.machinePos = machinePos;
-
-        var client = Minecraft.getInstance();
-        this.dimensions = client.level == null
-                ? new ArrayList<>()
-                : new ArrayList<>(
-                        client.level.registryAccess()
-                                .registryOrThrow(Registries.DIMENSION)
-                                .keySet());
     }
 
     @Override
     protected void init() {
+        dimensions.clear();
+
+        if (Minecraft.getInstance().level != null) {
+            dimensions.addAll(
+                    Minecraft.getInstance().level.registryAccess()
+                            .registryOrThrow(Registries.LEVEL_STEM)
+                            .keySet()
+            );
+        }
+
+        dimensions.sort(Comparator.comparing(ResourceLocation::toString));
+        page = Math.max(0, Math.min(page, maxPage()));
         rebuildButtons();
+    }
+
+    private int maxPage() {
+        return Math.max(0, (dimensions.size() - 1) / 8);
     }
 
     private void rebuildButtons() {
@@ -52,37 +61,30 @@ public class VoidFluidDimensionSelectionScreen extends Screen {
 
             addRenderableWidget(Button.builder(
                     Component.literal(id.toString()),
-                    button -> {
+                    b -> {
                         VoidTechNetwork.CHANNEL.sendToServer(
                                 new SetVoidFluidDimensionPacket(machinePos, id));
                         Minecraft.getInstance().setScreen(parent);
-                    })
-                    .bounds(left, 35 + row * 24, 220, 20)
-                    .build());
+                    }
+            ).bounds(left, 35 + row * 23, 220, 20).build());
         }
 
         if (page > 0) {
-            addRenderableWidget(Button.builder(
-                    Component.literal("上一页"),
-                    b -> {
-                        page--;
-                        rebuildButtons();
-                    }).bounds(left, height - 45, 105, 20).build());
+            addRenderableWidget(Button.builder(Component.literal("上一页"), b -> {
+                page--;
+                rebuildButtons();
+            }).bounds(left, height - 25, 70, 20).build());
         }
 
-        addRenderableWidget(Button.builder(
-                Component.literal("返回"),
+        addRenderableWidget(Button.builder(Component.literal("返回"),
                 b -> Minecraft.getInstance().setScreen(parent))
-                .bounds(width / 2 - 52, height - 20, 104, 20)
-                .build());
+                .bounds(width / 2 - 35, height - 25, 70, 20).build());
 
-        if ((page + 1) * 8 < dimensions.size()) {
-            addRenderableWidget(Button.builder(
-                    Component.literal("下一页"),
-                    b -> {
-                        page++;
-                        rebuildButtons();
-                    }).bounds(width / 2 + 5, height - 45, 105, 20).build());
+        if (page < maxPage()) {
+            addRenderableWidget(Button.builder(Component.literal("下一页"), b -> {
+                page++;
+                rebuildButtons();
+            }).bounds(left + 150, height - 25, 70, 20).build());
         }
     }
 
