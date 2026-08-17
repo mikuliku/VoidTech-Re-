@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
@@ -33,34 +34,33 @@ public class VoidFluidSelectionScreen extends Screen {
 
     @Override
     protected void init() {
+        rebuildFluidList();
+        rebuildButtons();
+    }
+
+    private void rebuildFluidList() {
         fluids.clear();
+
+        int tier = getMachineTier();
+        Level level = Minecraft.getInstance().level;
+        ResourceLocation dimension = VoidFluidDimensionCatalog.currentDimension(level);
 
         ForgeRegistries.FLUIDS.getEntries().stream()
                 .filter(entry -> entry.getValue().defaultFluidState().isSource())
                 .map(entry -> entry.getKey().location())
-                .filter(id -> VoidFluidCatalog.canProduce(id, getMachineTier()))
-                .filter(this::allowedForCurrentProductionDimension)
+                .filter(id -> VoidFluidCatalog.canProduce(id, tier))
+                .filter(id -> VoidFluidDimensionCatalog.isAllowedByDimension(dimension, id))
                 .sorted(Comparator.comparing(ResourceLocation::toString))
                 .forEach(fluids::add);
 
         page = Math.max(0, Math.min(page, maxPage()));
-        rebuildButtons();
-    }
-
-    private boolean allowedForCurrentProductionDimension(ResourceLocation fluidId) {
-        // The machine screen does not yet expose the selected target dimension
-        // to the client menu. Therefore the current client-side rule uses the
-        // player's current dimension. Explicit rules remain optional.
-        ResourceLocation dimension = VoidFluidDimensionCatalog.currentDimension(
-                Minecraft.getInstance().level);
-        return VoidFluidDimensionCatalog.isAllowedByDimension(dimension, fluidId);
     }
 
     private void rebuildButtons() {
         clearWidgets();
 
         int width = 260;
-        int left = (this.width - width) / 2;
+        int left = (width() - width) / 2;
         int startY = 38;
 
         int start = page * PAGE_SIZE;
@@ -70,17 +70,13 @@ public class VoidFluidSelectionScreen extends Screen {
             ResourceLocation id = fluids.get(i);
             int row = i - start;
 
-            Component name = VoidFluidCatalog.isVoidTechFluid(id)
-                    ? Component.translatable("fluid.voidtech." + id.getPath())
-                    : Component.literal(id.toString());
+            Component name = Component.literal(id.toString());
 
-            Button button = Button.builder(name, b -> {
+            addRenderableWidget(Button.builder(name, button -> {
                 VoidTechNetwork.CHANNEL.sendToServer(
                         new SetFluidTypePacket(machinePos, id));
                 Minecraft.getInstance().setScreen(parent);
-            }).bounds(left, startY + row * 23, width, 20).build();
-
-            addRenderableWidget(button);
+            }).bounds(left, startY + row * 23, width, 20).build());
         }
 
         int navY = height - 30;
@@ -88,7 +84,7 @@ public class VoidFluidSelectionScreen extends Screen {
         if (page > 0) {
             addRenderableWidget(Button.builder(
                     Component.translatable("gui.voidtech.previous"),
-                    b -> {
+                    button -> {
                         page--;
                         rebuildButtons();
                     }).bounds(left, navY, 80, 20).build());
@@ -96,14 +92,14 @@ public class VoidFluidSelectionScreen extends Screen {
 
         addRenderableWidget(Button.builder(
                 Component.translatable("gui.voidtech.back"),
-                b -> Minecraft.getInstance().setScreen(parent))
+                button -> Minecraft.getInstance().setScreen(parent))
                 .bounds(left + 90, navY, 80, 20)
                 .build());
 
         if (page < maxPage()) {
             addRenderableWidget(Button.builder(
                     Component.translatable("gui.voidtech.next"),
-                    b -> {
+                    button -> {
                         page++;
                         rebuildButtons();
                     }).bounds(left + 180, navY, 80, 20).build());
