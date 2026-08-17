@@ -8,7 +8,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -26,22 +25,31 @@ public class VoidFluidMachineMenu extends AbstractContainerMenu {
         this.machinePos = machinePos;
         addDataSlots(data);
 
-        addSlot(new SlotItemHandler(upgrades, 0, 152, 10) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return stack.is(ModItems.DIMENSION_UPGRADE.get());
-            }
+        for (int slot = 0; slot < 4; slot++) {
+            final int upgradeSlot = slot;
+            addSlot(new SlotItemHandler(upgrades, slot, 8 + slot * 20, 18) {
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return switch (upgradeSlot) {
+                        case 0 -> stack.is(ModItems.SPEED_UPGRADE.get());
+                        case 1 -> stack.is(ModItems.YIELD_UPGRADE.get());
+                        case 2 -> stack.is(ModItems.PRECISION_UPGRADE.get());
+                        case 3 -> stack.is(ModItems.DIMENSION_UPGRADE.get());
+                        default -> false;
+                    };
+                }
 
-            @Override
-            public int getMaxStackSize() {
-                return 1;
-            }
-        });
+                @Override
+                public int getMaxStackSize() {
+                    return 1;
+                }
+            });
+        }
     }
 
     private VoidFluidMachineMenu(int id, Inventory inv, int tier, BlockPos pos) {
-        this(id, inv, tier, new SimpleContainerData(7),
-                new net.minecraftforge.items.ItemStackHandler(1), pos);
+        this(id, inv, tier, new net.minecraft.world.inventory.SimpleContainerData(6),
+                new net.minecraftforge.items.ItemStackHandler(4), pos);
     }
 
     public static VoidFluidMachineMenu fromNetwork(int id, Inventory inv, FriendlyByteBuf buf) {
@@ -56,7 +64,6 @@ public class VoidFluidMachineMenu extends AbstractContainerMenu {
     public boolean isStructureValid() { return data.get(3) == 1; }
     public int getFluidAmount() { return data.get(4); }
     public boolean hasDimensionUpgrade() { return data.get(5) == 1; }
-    public int getTargetDimensionHash() { return data.get(6); }
 
     public int getFluidCapacity() {
         return switch (tier) {
@@ -71,23 +78,27 @@ public class VoidFluidMachineMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        int upgradeSlot = 0;
-        if (index == upgradeSlot) {
+        if (index >= 0 && index < 4) {
             ItemStack stack = getSlot(index).getItem().copy();
-            if (!stack.isEmpty() && moveItemStackTo(stack, 1, slots.size(), true)) {
+            if (stack.isEmpty()) return ItemStack.EMPTY;
+            if (moveItemStackTo(stack, 4, slots.size(), true)) {
                 getSlot(index).set(ItemStack.EMPTY);
                 return stack;
             }
             return ItemStack.EMPTY;
         }
 
-        ItemStack stack = getSlot(index).getItem().copy();
-        if (stack.isEmpty()) return ItemStack.EMPTY;
+        if (index >= 4 && index < slots.size()) {
+            ItemStack stack = getSlot(index).getItem().copy();
+            if (stack.isEmpty()) return ItemStack.EMPTY;
 
-        if (stack.is(ModItems.DIMENSION_UPGRADE.get())
-                && moveItemStackTo(stack, upgradeSlot, upgradeSlot + 1, false)) {
-            getSlot(index).set(ItemStack.EMPTY);
-            return stack;
+            for (int slot = 0; slot < 4; slot++) {
+                if (getSlot(slot).mayPlace(stack)
+                        && moveItemStackTo(stack, slot, slot + 1, false)) {
+                    getSlot(index).set(stack);
+                    return stack;
+                }
+            }
         }
 
         return ItemStack.EMPTY;
