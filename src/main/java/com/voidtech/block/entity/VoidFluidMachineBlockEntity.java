@@ -134,6 +134,11 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         ResourceLocation id = ForgeRegistries.FLUIDS.getKey(fluid);
         if (id == null || !VoidFluidCatalog.canProduce(id, machine.tier)) return;
 
+        // The dimension upgrade is now part of the production context.
+        // Without it, production uses the machine's current dimension.
+        // With it, the selected target dimension must exist on the server.
+        if (machine.hasDimensionUpgrade() && machine.getTargetLevel() == null) return;
+
         if (machine.tank.fill(new FluidStack(fluid, amount),
                 IFluidHandler.FluidAction.SIMULATE) != amount) return;
 
@@ -241,13 +246,19 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
     }
 
     public int getTier() { return tier; }
+
     public int getProgressPercent() {
         return Math.min(100, progress * 100 / Math.max(1, INTERVAL[tier]));
     }
+
     public int getEnergyStored() { return energyStorage.getEnergyStored(); }
+
     public int getMaxEnergyStored() { return energyStorage.getMaxEnergyStored(); }
+
     public boolean isStructureValid() { return structureValid; }
+
     public FluidTank getTank() { return tank; }
+
     public ItemStackHandler getUpgradeInventory() { return upgrades; }
 
     public static int capacityFor(int tier) {
@@ -269,7 +280,8 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
     @Override
     public AbstractContainerMenu createMenu(int id, Inventory inv, Player player) {
         ContainerData data = new ContainerData() {
-            @Override public int get(int index) {
+            @Override
+            public int get(int index) {
                 return switch (index) {
                     case 0 -> energyStorage.getEnergyStored();
                     case 1 -> energyStorage.getMaxEnergyStored();
@@ -280,8 +292,12 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
                     default -> 0;
                 };
             }
-            @Override public void set(int index, int value) {}
-            @Override public int getCount() { return 6; }
+
+            @Override
+            public void set(int index, int value) {}
+
+            @Override
+            public int getCount() { return 6; }
         };
 
         return new VoidFluidMachineMenu(id, inv, tier, data, upgrades, worldPosition);
@@ -305,7 +321,9 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         tag.putInt("Progress", progress);
         tag.putBoolean("StructureValid", structureValid);
         tag.putString("SelectedFluid", selectedFluid.toString());
-        if (targetDimension != null) tag.putString("TargetDimension", targetDimension.toString());
+        if (targetDimension != null) {
+            tag.putString("TargetDimension", targetDimension.toString());
+        }
     }
 
     @Override
@@ -314,6 +332,7 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         if (tag.contains("Energy")) energyStorage.deserializeNBT(tag.get("Energy"));
         if (tag.contains("Fluid")) tank.readFromNBT(tag.getCompound("Fluid"));
         if (tag.contains("Upgrades")) upgrades.deserializeNBT(tag.getCompound("Upgrades"));
+
         progress = tag.getInt("Progress");
         structureValid = tag.getBoolean("StructureValid");
 
@@ -321,6 +340,7 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
             ResourceLocation id = ResourceLocation.tryParse(tag.getString("SelectedFluid"));
             if (id != null) selectedFluid = id;
         }
+
         if (tag.contains("TargetDimension")) {
             targetDimension = ResourceLocation.tryParse(tag.getString("TargetDimension"));
         }
