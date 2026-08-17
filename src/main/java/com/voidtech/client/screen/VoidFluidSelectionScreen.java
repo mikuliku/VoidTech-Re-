@@ -59,8 +59,8 @@ public class VoidFluidSelectionScreen extends Screen {
     private void rebuildButtons() {
         clearWidgets();
 
-        int width = 260;
-        int left = (width() - width) / 2;
+        int buttonWidth = 260;
+        int left = (this.width - buttonWidth) / 2;
         int startY = 38;
 
         int start = page * PAGE_SIZE;
@@ -70,13 +70,15 @@ public class VoidFluidSelectionScreen extends Screen {
             ResourceLocation id = fluids.get(i);
             int row = i - start;
 
-            Component name = Component.literal(id.toString());
+            Component name = VoidFluidCatalog.isVoidTechFluid(id)
+                    ? Component.translatable("fluid.voidtech." + id.getPath())
+                    : Component.literal(id.toString());
 
             addRenderableWidget(Button.builder(name, button -> {
                 VoidTechNetwork.CHANNEL.sendToServer(
                         new SetFluidTypePacket(machinePos, id));
                 Minecraft.getInstance().setScreen(parent);
-            }).bounds(left, startY + row * 23, width, 20).build());
+            }).bounds(left, startY + row * 23, buttonWidth, 20).build());
         }
 
         int navY = height - 30;
@@ -120,7 +122,7 @@ public class VoidFluidSelectionScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics);
-        graphics.drawCenteredString(font, title, width / 2, 16, 0xFFFFFF);
+        graphics.drawCenteredString(font, title, this.width / 2, 16, 0xFFFFFF);
         super.render(graphics, mouseX, mouseY, partialTick);
     }
 
