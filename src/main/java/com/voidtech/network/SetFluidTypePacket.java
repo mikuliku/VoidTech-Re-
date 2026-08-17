@@ -1,6 +1,7 @@
 package com.voidtech.network;
 
 import com.voidtech.block.entity.VoidFluidMachineBlockEntity;
+import com.voidtech.fluid.VoidFluidCatalog;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,8 +13,10 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.function.Supplier;
 
 public record SetFluidTypePacket(BlockPos pos, ResourceLocation fluid) {
-    public static void handle(SetFluidTypePacket packet, Supplier<NetworkEvent.Context> supplier) {
+    public static void handle(SetFluidTypePacket packet,
+                              Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context ctx = supplier.get();
+
         ctx.enqueueWork(() -> {
             ServerPlayer player = ctx.getSender();
             if (player == null) return;
@@ -27,8 +30,12 @@ public record SetFluidTypePacket(BlockPos pos, ResourceLocation fluid) {
             if (fluid == null || fluid == Fluids.EMPTY) return;
             if (!fluid.defaultFluidState().isSource()) return;
 
+            // Never trust the client: the server enforces the machine-tier rule.
+            if (!VoidFluidCatalog.canProduce(packet.fluid(), machine.getTier())) return;
+
             machine.setSelectedFluid(packet.fluid());
         });
+
         ctx.setPacketHandled(true);
     }
 }
