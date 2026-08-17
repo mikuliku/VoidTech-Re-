@@ -1,5 +1,6 @@
 package com.voidtech.block.entity;
 
+import com.voidtech.fluid.VoidFluidDimensionOreCatalog;
 import com.voidtech.menu.VoidMiningMachineMenu;
 import com.voidtech.multiblock.VoidMiningStructure;
 import com.voidtech.registry.ModItems;
@@ -114,15 +115,10 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         energyCap = LazyOptional.of(() -> energyStorage);
     }
 
-    public static void serverTick(
-            Level level,
-            BlockPos pos,
-            BlockState state,
-            VoidMiningMachineBlockEntity machine
-    ) {
+    public static void serverTick(Level level, BlockPos pos, BlockState state,
+                                   VoidMiningMachineBlockEntity machine) {
         if (level.getGameTime() % 10L == 0L) {
-            machine.structureValid =
-                    VoidMiningStructure.isValid(level, pos, machine.tier);
+            machine.structureValid = VoidMiningStructure.isValid(level, pos, machine.tier);
         }
 
         if (!machine.structureValid) return;
@@ -145,56 +141,45 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         ServerLevel targetLevel = getMiningLevel();
         if (targetLevel == null) return ItemStack.EMPTY;
 
-        List<Block> ores = getOrePool(targetLevel);
-        if (ores.isEmpty()) return ItemStack.EMPTY;
+        List<Block> resources = getOrePool(targetLevel);
+        if (resources.isEmpty()) return ItemStack.EMPTY;
 
-        Block selected = ores.get(random.nextInt(ores.size()));
-
-        /*
-         * Precision upgrade:
-         * - Without precision: mine the normal raw-ore result, e.g. raw iron,
-         *   raw copper or raw gold.
-         * - With precision: preserve the actual ore block as an "ore" item,
-         *   i.e. the machine produces the original ore instead of the raw ore.
-         */
+        Block selected = resources.get(random.nextInt(resources.size()));
         Item resultItem = getMiningOutputItem(selected);
+
         if (resultItem == null || resultItem == Items.AIR) {
             return ItemStack.EMPTY;
         }
 
+        // Quantity is intentionally controlled only by the Yield Upgrade.
         int count = 1;
+        int yield = getYieldUpgradeLevel();
 
-        int yield = getUpgradeLevel(1);
         if (yield > 0) {
             count += yield;
-            if (random.nextFloat() < 0.25f * yield) count++;
+            if (random.nextFloat() < 0.25f * yield) {
+                count++;
+            }
         }
 
         return new ItemStack(resultItem, count);
     }
 
     /**
-     * Precision upgrade determines whether the machine outputs the ore block
-     * itself or the normal raw-ore drop.
+     * Precision Upgrade:
+     * 0 = normal raw-material output where a raw item exists.
+     * 1 = the original ore/block item.
      */
     @Nullable
-    private Item getMiningOutputItem(Block oreBlock) {
+    private Item getMiningOutputItem(Block resourceBlock) {
         if (getPrecisionUpgradeLevel() > 0) {
-            return oreBlock.asItem();
+            return resourceBlock.asItem();
         }
 
-        ResourceLocation blockId = ForgeRegistries.BLOCKS.getKey(oreBlock);
+        ResourceLocation blockId = ForgeRegistries.BLOCKS.getKey(resourceBlock);
         if (blockId == null) return null;
 
         String path = blockId.getPath();
-
-        // Vanilla/modded normal ores:
-        // iron_ore -> raw_iron
-        // deepslate_iron_ore -> raw_iron
-        // copper_ore -> raw_copper
-        // deepslate_copper_ore -> raw_copper
-        // gold_ore -> raw_gold
-        // deepslate_gold_ore -> raw_gold
         String oreName = path;
 
         if (oreName.startsWith("deepslate_")) {
@@ -211,11 +196,7 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
             }
         }
 
-        /*
-         * For ores whose mod does not register a raw_* item, fall back to the
-         * ore block item rather than returning an invalid/empty result.
-         */
-        return oreBlock.asItem();
+        return resourceBlock.asItem();
     }
 
     @Nullable
@@ -234,6 +215,15 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         return server.getLevel(key);
     }
 
+    /**
+     * Dimension Upgrade controls the resource pool.
+     *
+     * Registered vanilla dimensions use VoidFluidDimensionOreCatalog.
+     * Other dimensions fall back to the Forge ORES tag so modded dimensions
+     * remain compatible until their dedicated resource pool is configured.
+     *
+     * No quantity multiplier is applied here.
+     */
     private List<Block> getOrePool(ServerLevel targetLevel) {
         ResourceLocation dimension = targetLevel.dimension().location();
 
@@ -243,37 +233,19 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
 
         Set<Block> found = new LinkedHashSet<>();
 
-        int centerChunkX = worldPosition.getX() >> 4;
-        int centerChunkZ = worldPosition.getZ() >> 4;
+        for (ResourceLocation resourceId :
+                VoidFluidDimensionOreCatalog.getPool(dimension)) {
 
-        int minY = Math.max(targetLevel.getMinBuildHeight(), -64);
-        int maxY = Math.min(targetLevel.getMaxBuildHeight(), 320);
-
-        int step = getPrecisionUpgradeLevel() > 0 ? 2 : 4;
-
-        for (int chunkX = centerChunkX - 1; chunkX <= centerChunkX + 1; chunkX++) {
-            for (int chunkZ = centerChunkZ - 1; chunkZ <= centerChunkZ + 1; chunkZ++) {
-                int baseX = chunkX << 4;
-                int baseZ = chunkZ << 4;
-
-                for (int x = baseX; x < baseX + 16; x += step) {
-                    for (int z = baseZ; z < baseZ + 16; z += step) {
-                        for (int y = minY; y < maxY; y += step) {
-                            BlockState state =
-                                    targetLevel.getBlockState(new BlockPos(x, y, z));
-
-                            Block block = state.getBlock();
-
-                            if (block.asItem() != Blocks.AIR.asItem()
-                                    && state.is(Tags.Blocks.ORES)) {
-                                found.add(block);
-                            }
-                        }
-                    }
-                }
+            Block block = ForgeRegistries.BLOCKS.getValue(resourceId);
+            if (block != null && block != Blocks.AIR) {
+                found.add(block);
             }
         }
 
+        /*
+         * Modded dimensions that do not yet have an explicit pool retain
+         * compatibility by discovering registered ore blocks.
+         */
         if (found.isEmpty()) {
             for (Block block : ForgeRegistries.BLOCKS.getValues()) {
                 if (block.defaultBlockState().is(Tags.Blocks.ORES)
@@ -332,10 +304,8 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
         if (!hasDimensionUpgrade() || id == null) return;
 
         miningDimension = id;
-
         cachedOrePoolDimension = null;
         cachedOrePool = List.of();
-
         setChanged();
     }
 
@@ -376,9 +346,7 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
     }
 
     public Component getDisplayName() {
-        return Component.translatable(
-                "block.voidtech.void_mining_machine_t" + tier
-        );
+        return Component.translatable("block.voidtech.void_mining_machine_t" + tier);
     }
 
     public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
@@ -393,8 +361,7 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
                 };
             }
 
-            public void set(int i, int v) {
-            }
+            public void set(int i, int v) {}
 
             public int getCount() {
                 return 4;
@@ -414,8 +381,7 @@ public class VoidMiningMachineBlockEntity extends BlockEntity implements MenuPro
 
     public <T> LazyOptional<T> getCapability(
             Capability<T> capability,
-            @Nullable net.minecraft.core.Direction side
-    ) {
+            @Nullable net.minecraft.core.Direction side) {
         if (capability == ForgeCapabilities.ENERGY) {
             return energyCap.cast();
         }
