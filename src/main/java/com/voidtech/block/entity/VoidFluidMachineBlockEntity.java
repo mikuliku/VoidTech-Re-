@@ -134,9 +134,8 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         ResourceLocation id = ForgeRegistries.FLUIDS.getKey(fluid);
         if (id == null || !VoidFluidCatalog.canProduce(id, machine.tier)) return;
 
-        // The dimension upgrade is now part of the production context.
-        // Without it, production uses the machine's current dimension.
-        // With it, the selected target dimension must exist on the server.
+        // The selected dimension is now validated as part of production.
+        // This intentionally does not yet impose dimension-specific fluid rules.
         if (machine.hasDimensionUpgrade() && machine.getTargetLevel() == null) return;
 
         if (machine.tank.fill(new FluidStack(fluid, amount),
