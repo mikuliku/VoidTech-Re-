@@ -159,4 +159,178 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
                     if (Math.abs(x) != layerRadius && Math.abs(z) != layerRadius) continue;
 
                     BlockEntity target = level.getBlockEntity(
-                            controllerPos.offset(x, y + 1, z)
+                            controllerPos.offset(x, y + 1, z));
+
+                    if (!(target instanceof VoidFluidInterfaceBlockEntity interfaceEntity)) continue;
+                    if (interfaceEntity.getTier() > tier) continue;
+
+                    FluidStack toSend = tank.getFluid().copy();
+                    toSend.setAmount(Math.min(toSend.getAmount(), FLUID_TRANSFER_PER_INTERFACE));
+
+                    IFluidHandler handler = interfaceEntity.getTank();
+                    int accepted = handler.fill(toSend, IFluidHandler.FluidAction.SIMULATE);
+                    if (accepted <= 0) continue;
+
+                    FluidStack extracted = tank.drain(
+                            Math.min(accepted, toSend.getAmount()),
+                            IFluidHandler.FluidAction.EXECUTE);
+
+                    if (!extracted.isEmpty()) {
+                        handler.fill(extracted, IFluidHandler.FluidAction.EXECUTE);
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean hasDimensionUpgrade() {
+        return !upgrades.getStackInSlot(3).isEmpty();
+    }
+
+    public void setTargetDimension(ResourceLocation id) {
+        if (!hasDimensionUpgrade() || id == null || level == null || level.isClientSide()) return;
+
+        MinecraftServer server = level.getServer();
+        if (server == null) return;
+
+        ResourceKey<Level> key = ResourceKey.create(
+                net.minecraft.core.registries.Registries.DIMENSION, id);
+        if (server.getLevel(key) == null) return;
+
+        targetDimension = id;
+        setChanged();
+    }
+
+    public ResourceLocation getTargetDimension() {
+        if (!hasDimensionUpgrade() || targetDimension == null) {
+            return level == null ? new ResourceLocation("minecraft", "overworld")
+                    : level.dimension().location();
+        }
+        return targetDimension;
+    }
+
+    public ServerLevel getTargetLevel() {
+        if (level == null || level.isClientSide()) return null;
+        MinecraftServer server = level.getServer();
+        if (server == null) return null;
+
+        ResourceLocation id = getTargetDimension();
+        ResourceKey<Level> key = ResourceKey.create(
+                net.minecraft.core.registries.Registries.DIMENSION, id);
+        return server.getLevel(key);
+    }
+
+    public Fluid getSelectedFluid() {
+        Fluid fluid = ForgeRegistries.FLUIDS.getValue(selectedFluid);
+        return fluid == null ? Fluids.WATER : fluid;
+    }
+
+    public ResourceLocation getSelectedFluidId() {
+        return selectedFluid;
+    }
+
+    public void setSelectedFluid(ResourceLocation id) {
+        Fluid fluid = ForgeRegistries.FLUIDS.getValue(id);
+        if (fluid == null || fluid == Fluids.EMPTY
+                || !fluid.defaultFluidState().isSource()) return;
+        if (!VoidFluidCatalog.canProduce(id, tier)) return;
+        if (!tank.isEmpty() && tank.getFluid().getFluid() != fluid) return;
+
+        selectedFluid = id;
+        setChanged();
+    }
+
+    public int getTier() { return tier; }
+    public int getProgressPercent() {
+        return Math.min(100, progress * 100 / Math.max(1, INTERVAL[tier]));
+    }
+    public int getEnergyStored() { return energyStorage.getEnergyStored(); }
+    public int getMaxEnergyStored() { return energyStorage.getMaxEnergyStored(); }
+    public boolean isStructureValid() { return structureValid; }
+    public FluidTank getTank() { return tank; }
+    public ItemStackHandler getUpgradeInventory() { return upgrades; }
+
+    public static int capacityFor(int tier) {
+        return switch (Math.max(1, Math.min(6, tier))) {
+            case 1 -> 16000;
+            case 2 -> 32000;
+            case 3 -> 64000;
+            case 4 -> 128000;
+            case 5 -> 256000;
+            default -> 512000;
+        };
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable("menu.voidtech.void_fluid_machine");
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int id, Inventory inv, Player player) {
+        ContainerData data = new ContainerData() {
+            @Override public int get(int index) {
+                return switch (index) {
+                    case 0 -> energyStorage.getEnergyStored();
+                    case 1 -> energyStorage.getMaxEnergyStored();
+                    case 2 -> getProgressPercent();
+                    case 3 -> structureValid ? 1 : 0;
+                    case 4 -> tank.getFluidAmount();
+                    case 5 -> hasDimensionUpgrade() ? 1 : 0;
+                    default -> 0;
+                };
+            }
+            @Override public void set(int index, int value) {}
+            @Override public int getCount() { return 6; }
+        };
+
+        return new VoidFluidMachineMenu(id, inv, tier, data, upgrades, worldPosition);
+    }
+
+    @Override
+    public <T> LazyOptional<T> getCapability(Capability<T> capability,
+                                               @Nullable net.minecraft.core.Direction side) {
+        if (capability == ForgeCapabilities.ENERGY) return energyCapability.cast();
+        if (capability == ForgeCapabilities.FLUID_HANDLER) return fluidCapability.cast();
+        if (capability == ForgeCapabilities.ITEM_HANDLER) return upgradeCapability.cast();
+        return super.getCapability(capability, side);
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.put("Energy", energyStorage.serializeNBT());
+        tag.put("Fluid", tank.writeToNBT(new CompoundTag()));
+        tag.put("Upgrades", upgrades.serializeNBT());
+        tag.putInt("Progress", progress);
+        tag.putBoolean("StructureValid", structureValid);
+        tag.putString("SelectedFluid", selectedFluid.toString());
+        if (targetDimension != null) tag.putString("TargetDimension", targetDimension.toString());
+    }
+
+    @Override
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        if (tag.contains("Energy")) energyStorage.deserializeNBT(tag.get("Energy"));
+        if (tag.contains("Fluid")) tank.readFromNBT(tag.getCompound("Fluid"));
+        if (tag.contains("Upgrades")) upgrades.deserializeNBT(tag.getCompound("Upgrades"));
+        progress = tag.getInt("Progress");
+        structureValid = tag.getBoolean("StructureValid");
+
+        if (tag.contains("SelectedFluid")) {
+            ResourceLocation id = ResourceLocation.tryParse(tag.getString("SelectedFluid"));
+            if (id != null) selectedFluid = id;
+        }
+        if (tag.contains("TargetDimension")) {
+            targetDimension = ResourceLocation.tryParse(tag.getString("TargetDimension"));
+        }
+    }
+
+    @Override
+    public void invalidateCaps() {
+        super.invalidateCaps();
+        energyCapability.invalidate();
+        fluidCapability.invalidate();
+        upgradeCapability.invalidate();
+    }
+}
