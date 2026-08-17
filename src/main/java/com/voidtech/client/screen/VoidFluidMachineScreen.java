@@ -20,20 +20,18 @@ public class VoidFluidMachineScreen extends AbstractContainerScreen<VoidFluidMac
         super.init();
 
         addRenderableWidget(Button.builder(
-                Component.literal("选择流体"),
-                button -> Minecraft.getInstance().setScreen(
+                Component.translatable("gui.voidtech.select_fluid"),
+                b -> Minecraft.getInstance().setScreen(
                         new VoidFluidSelectionScreen(this, menu.getMachinePos())))
                 .bounds(leftPos + 38, topPos + 106, 100, 20)
                 .build());
 
         if (menu.hasDimensionUpgrade()) {
             addRenderableWidget(Button.builder(
-                    Component.literal("选择目标维度"),
-                    button -> Minecraft.getInstance().setScreen(
-                            new VoidFluidDimensionSelectionScreen(
-                                    this,
-                                    menu.getMachinePos())))
-                    .bounds(leftPos + 38, topPos + 84, 100, 20)
+                    Component.translatable("gui.voidtech.select_dimension"),
+                    b -> Minecraft.getInstance().setScreen(
+                            new VoidFluidDimensionSelectionScreen(this, menu.getMachinePos())))
+                    .bounds(leftPos + 38, topPos + 83, 100, 20)
                     .build());
         }
     }
