@@ -1,6 +1,7 @@
 package com.voidtech.client.screen;
 
 import com.voidtech.fluid.VoidFluidCatalog;
+import com.voidtech.fluid.VoidFluidDimensionCatalog;
 import com.voidtech.network.SetFluidTypePacket;
 import com.voidtech.network.VoidTechNetwork;
 import net.minecraft.client.Minecraft;
@@ -37,11 +38,22 @@ public class VoidFluidSelectionScreen extends Screen {
         ForgeRegistries.FLUIDS.getEntries().stream()
                 .filter(entry -> entry.getValue().defaultFluidState().isSource())
                 .map(entry -> entry.getKey().location())
+                .filter(id -> VoidFluidCatalog.canProduce(id, getMachineTier()))
+                .filter(this::allowedForCurrentProductionDimension)
                 .sorted(Comparator.comparing(ResourceLocation::toString))
                 .forEach(fluids::add);
 
         page = Math.max(0, Math.min(page, maxPage()));
         rebuildButtons();
+    }
+
+    private boolean allowedForCurrentProductionDimension(ResourceLocation fluidId) {
+        // The machine screen does not yet expose the selected target dimension
+        // to the client menu. Therefore the current client-side rule uses the
+        // player's current dimension. Explicit rules remain optional.
+        ResourceLocation dimension = VoidFluidDimensionCatalog.currentDimension(
+                Minecraft.getInstance().level);
+        return VoidFluidDimensionCatalog.isAllowedByDimension(dimension, fluidId);
     }
 
     private void rebuildButtons() {
@@ -57,23 +69,17 @@ public class VoidFluidSelectionScreen extends Screen {
         for (int i = start; i < end; i++) {
             ResourceLocation id = fluids.get(i);
             int row = i - start;
-            boolean unlocked = VoidFluidCatalog.canProduce(id, getMachineTier());
 
             Component name = VoidFluidCatalog.isVoidTechFluid(id)
                     ? Component.translatable("fluid.voidtech." + id.getPath())
                     : Component.literal(id.toString());
 
             Button button = Button.builder(name, b -> {
-                if (!unlocked) {
-                    return;
-                }
-
                 VoidTechNetwork.CHANNEL.sendToServer(
                         new SetFluidTypePacket(machinePos, id));
                 Minecraft.getInstance().setScreen(parent);
             }).bounds(left, startY + row * 23, width, 20).build();
 
-            button.active = unlocked;
             addRenderableWidget(button);
         }
 
