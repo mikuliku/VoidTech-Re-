@@ -5,11 +5,12 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.Map;
 
 /**
- * Central definition of the VoidTech fluid production tiers.
+ * Central definition of the six VoidTech progression fluids.
  *
- * <p>Only the six fluids registered by VoidTech are tier-restricted.
- * Vanilla fluids and fluids supplied by other mods remain selectable,
- * provided that they are registered source fluids.</p>
+ * Machine tier controls which VoidTech fluids may be selected.
+ * Vanilla and modded fluids are not restricted by this progression.
+ * Output quantity is intentionally not handled here; that belongs to
+ * the Yield Upgrade system.
  */
 public final class VoidFluidCatalog {
     private static final Map<String, Integer> VOID_FLUID_TIERS = Map.of(
@@ -21,43 +22,24 @@ public final class VoidFluidCatalog {
             "void_concentrate", 6
     );
 
-    private VoidFluidCatalog() {
-    }
+    private VoidFluidCatalog() {}
 
-    /**
-     * Returns the minimum VoidFluidMachine tier required for this fluid.
-     * Non-VoidTech fluids return 0, meaning they are not tier restricted.
-     */
     public static int requiredTier(ResourceLocation id) {
-        if (id == null || !"voidtech".equals(id.getNamespace())) {
-            return 0;
-        }
-
+        if (id == null || !"voidtech".equals(id.getNamespace())) return 0;
         return VOID_FLUID_TIERS.getOrDefault(id.getPath(), 0);
     }
 
-    /**
-     * Checks whether a machine of the supplied tier may produce the fluid.
-     */
     public static boolean canProduce(ResourceLocation id, int machineTier) {
-        if (id == null) {
-            return false;
-        }
-
+        if (id == null) return false;
         int required = requiredTier(id);
         return required == 0 || machineTier >= required;
     }
 
-    /**
-     * Returns true when the fluid is one of the six VoidTech progression fluids.
-     */
     public static boolean isVoidTechFluid(ResourceLocation id) {
-        return id != null
-                && "voidtech".equals(id.getNamespace())
-                && VOID_FLUID_TIERS.containsKey(id.getPath());
+        return requiredTier(id) > 0;
     }
 
-    private static int clampTier(int tier) {
+    public static int clampTier(int tier) {
         return Math.max(1, Math.min(6, tier));
     }
 }
