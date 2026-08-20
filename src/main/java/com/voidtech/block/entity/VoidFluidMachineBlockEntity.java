@@ -5,6 +5,8 @@ import com.voidtech.menu.VoidFluidMachineMenu;
 import com.voidtech.multiblock.VoidFluidStructure;
 import com.voidtech.multiblock.VoidMiningStructure;
 import com.voidtech.registry.ModItems;
+import com.voidtech.upgrade.UpgradeEffects;
+import com.voidtech.upgrade.UpgradeState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -56,18 +58,11 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
     private final LazyOptional<IFluidHandler> fluidCapability;
 
     private final ItemStackHandler upgrades = new ItemStackHandler(4) {
-        @Override
-        protected void onContentsChanged(int slot) {
-            setChanged();
-        }
+        @Override protected void onContentsChanged(int slot) { setChanged(); }
 
-        @Override
-        public int getSlotLimit(int slot) {
-            return 1;
-        }
+        @Override public int getSlotLimit(int slot) { return 6; }
 
-        @Override
-        public boolean isItemValid(int slot, net.minecraft.world.item.ItemStack stack) {
+        @Override public boolean isItemValid(int slot, net.minecraft.world.item.ItemStack stack) {
             return slot == 0 && stack.is(ModItems.SPEED_UPGRADE.get())
                     || slot == 1 && stack.is(ModItems.YIELD_UPGRADE.get())
                     || slot == 2 && stack.is(ModItems.PRECISION_UPGRADE.get())
@@ -75,8 +70,7 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         }
     };
 
-    private final LazyOptional<IItemHandler> upgradeCapability =
-            LazyOptional.of(() -> upgrades);
+    private final LazyOptional<IItemHandler> upgradeCapability = LazyOptional.of(() -> upgrades);
 
     public VoidFluidMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, int tier) {
         super(type, pos, state);
@@ -87,15 +81,12 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
                 ENERGY_TRANSFER[this.tier],
                 ENERGY_TRANSFER[this.tier]
         ) {
-            @Override
-            public int receiveEnergy(int amount, boolean simulate) {
+            @Override public int receiveEnergy(int amount, boolean simulate) {
                 int result = super.receiveEnergy(amount, simulate);
                 if (!simulate && result > 0) setChanged();
                 return result;
             }
-
-            @Override
-            public int extractEnergy(int amount, boolean simulate) {
+            @Override public int extractEnergy(int amount, boolean simulate) {
                 int result = super.extractEnergy(amount, simulate);
                 if (!simulate && result > 0) setChanged();
                 return result;
@@ -104,10 +95,7 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         energyCapability = LazyOptional.of(() -> energyStorage);
 
         tank = new FluidTank(capacityFor(this.tier)) {
-            @Override
-            protected void onContentsChanged() {
-                setChanged();
-            }
+            @Override protected void onContentsChanged() { setChanged(); }
         };
         fluidCapability = LazyOptional.of(() -> tank);
     }
@@ -121,11 +109,14 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
 
         machine.pushFluidToInterfaces(level, pos);
 
-        if (++machine.progress < INTERVAL[machine.tier]) return;
+        if (++machine.progress < machine.getEffectiveFluidInterval()) return;
         machine.progress = 0;
 
         int energyCost = ENERGY_PER_OPERATION[machine.tier];
-        int amount = FLUID_PER_OPERATION[machine.tier];
+        int amount = UpgradeEffects.outputAmount(
+                FLUID_PER_OPERATION[machine.tier],
+                machine.getYieldUpgradeLevel());
+
         if (machine.energyStorage.getEnergyStored() < energyCost) return;
 
         Fluid fluid = machine.getSelectedFluid();
@@ -134,8 +125,6 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         ResourceLocation id = ForgeRegistries.FLUIDS.getKey(fluid);
         if (id == null || !VoidFluidCatalog.canProduce(id, machine.tier)) return;
 
-        // The selected dimension is now validated as part of production.
-        // This intentionally does not yet impose dimension-specific fluid rules.
         if (machine.hasDimensionUpgrade() && machine.getTargetLevel() == null) return;
 
         if (machine.tank.fill(new FluidStack(fluid, amount),
@@ -162,9 +151,7 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
                 for (int z = -layerRadius; z <= layerRadius && !tank.isEmpty(); z++) {
                     if (Math.abs(x) != layerRadius && Math.abs(z) != layerRadius) continue;
 
-                    BlockEntity target = level.getBlockEntity(
-                            controllerPos.offset(x, y + 1, z));
-
+                    BlockEntity target = level.getBlockEntity(controllerPos.offset(x, y + 1, z));
                     if (!(target instanceof VoidFluidInterfaceBlockEntity interfaceEntity)) continue;
                     if (interfaceEntity.getTier() > tier) continue;
 
@@ -179,16 +166,14 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
                             Math.min(accepted, toSend.getAmount()),
                             IFluidHandler.FluidAction.EXECUTE);
 
-                    if (!extracted.isEmpty()) {
-                        handler.fill(extracted, IFluidHandler.FluidAction.EXECUTE);
-                    }
+                    if (!extracted.isEmpty()) handler.fill(extracted, IFluidHandler.FluidAction.EXECUTE);
                 }
             }
         }
     }
 
     public boolean hasDimensionUpgrade() {
-        return !upgrades.getStackInSlot(3).isEmpty();
+        return UpgradeState.dimension(upgrades) > 0;
     }
 
     public void setTargetDimension(ResourceLocation id) {
@@ -229,14 +214,11 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         return fluid == null ? Fluids.WATER : fluid;
     }
 
-    public ResourceLocation getSelectedFluidId() {
-        return selectedFluid;
-    }
+    public ResourceLocation getSelectedFluidId() { return selectedFluid; }
 
     public void setSelectedFluid(ResourceLocation id) {
         Fluid fluid = ForgeRegistries.FLUIDS.getValue(id);
-        if (fluid == null || fluid == Fluids.EMPTY
-                || !fluid.defaultFluidState().isSource()) return;
+        if (fluid == null || fluid == Fluids.EMPTY || !fluid.defaultFluidState().isSource()) return;
         if (!VoidFluidCatalog.canProduce(id, tier)) return;
         if (!tank.isEmpty() && tank.getFluid().getFluid() != fluid) return;
 
@@ -244,20 +226,23 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         setChanged();
     }
 
-    public int getTier() { return tier; }
+    public int getUpgradeLevel(int slot) { return UpgradeState.level(upgrades, slot); }
+    public int getSpeedUpgradeLevel() { return UpgradeState.speed(upgrades); }
+    public int getYieldUpgradeLevel() { return UpgradeState.yield(upgrades); }
+    public int getPrecisionUpgradeLevel() { return UpgradeState.precision(upgrades); }
 
-    public int getProgressPercent() {
-        return Math.min(100, progress * 100 / Math.max(1, INTERVAL[tier]));
+    public int getEffectiveFluidInterval() {
+        return UpgradeEffects.fluidInterval(INTERVAL[tier], getSpeedUpgradeLevel());
     }
 
+    public int getTier() { return tier; }
+    public int getProgressPercent() {
+        return Math.min(100, progress * 100 / Math.max(1, getEffectiveFluidInterval()));
+    }
     public int getEnergyStored() { return energyStorage.getEnergyStored(); }
-
     public int getMaxEnergyStored() { return energyStorage.getMaxEnergyStored(); }
-
     public boolean isStructureValid() { return structureValid; }
-
     public FluidTank getTank() { return tank; }
-
     public ItemStackHandler getUpgradeInventory() { return upgrades; }
 
     public static int capacityFor(int tier) {
@@ -271,16 +256,13 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         };
     }
 
-    @Override
-    public Component getDisplayName() {
+    @Override public Component getDisplayName() {
         return Component.translatable("menu.voidtech.void_fluid_machine");
     }
 
-    @Override
-    public AbstractContainerMenu createMenu(int id, Inventory inv, Player player) {
+    @Override public AbstractContainerMenu createMenu(int id, Inventory inv, Player player) {
         ContainerData data = new ContainerData() {
-            @Override
-            public int get(int index) {
+            @Override public int get(int index) {
                 return switch (index) {
                     case 0 -> energyStorage.getEnergyStored();
                     case 1 -> energyStorage.getMaxEnergyStored();
@@ -291,28 +273,22 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
                     default -> 0;
                 };
             }
-
-            @Override
-            public void set(int index, int value) {}
-
-            @Override
-            public int getCount() { return 6; }
+            @Override public void set(int index, int value) {}
+            @Override public int getCount() { return 6; }
         };
 
         return new VoidFluidMachineMenu(id, inv, tier, data, upgrades, worldPosition);
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> capability,
-                                               @Nullable net.minecraft.core.Direction side) {
+    @Override public <T> LazyOptional<T> getCapability(Capability<T> capability,
+            @Nullable net.minecraft.core.Direction side) {
         if (capability == ForgeCapabilities.ENERGY) return energyCapability.cast();
         if (capability == ForgeCapabilities.FLUID_HANDLER) return fluidCapability.cast();
         if (capability == ForgeCapabilities.ITEM_HANDLER) return upgradeCapability.cast();
         return super.getCapability(capability, side);
     }
 
-    @Override
-    protected void saveAdditional(CompoundTag tag) {
+    @Override protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         tag.put("Energy", energyStorage.serializeNBT());
         tag.put("Fluid", tank.writeToNBT(new CompoundTag()));
@@ -320,13 +296,10 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
         tag.putInt("Progress", progress);
         tag.putBoolean("StructureValid", structureValid);
         tag.putString("SelectedFluid", selectedFluid.toString());
-        if (targetDimension != null) {
-            tag.putString("TargetDimension", targetDimension.toString());
-        }
+        if (targetDimension != null) tag.putString("TargetDimension", targetDimension.toString());
     }
 
-    @Override
-    public void load(CompoundTag tag) {
+    @Override public void load(CompoundTag tag) {
         super.load(tag);
         if (tag.contains("Energy")) energyStorage.deserializeNBT(tag.get("Energy"));
         if (tag.contains("Fluid")) tank.readFromNBT(tag.getCompound("Fluid"));
@@ -339,14 +312,12 @@ public class VoidFluidMachineBlockEntity extends BlockEntity implements MenuProv
             ResourceLocation id = ResourceLocation.tryParse(tag.getString("SelectedFluid"));
             if (id != null) selectedFluid = id;
         }
-
         if (tag.contains("TargetDimension")) {
             targetDimension = ResourceLocation.tryParse(tag.getString("TargetDimension"));
         }
     }
 
-    @Override
-    public void invalidateCaps() {
+    @Override public void invalidateCaps() {
         super.invalidateCaps();
         energyCapability.invalidate();
         fluidCapability.invalidate();
