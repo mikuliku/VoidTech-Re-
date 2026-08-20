@@ -10,13 +10,14 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Stage 4 compatibility layer.
+ * Final Stage 4 fluid compatibility catalog.
  *
- * The Void Fluid Machine can expose registered vanilla and modded source
- * fluids in addition to the six VoidTech progression fluids.
+ * The selector exposes every registered source fluid, including vanilla and
+ * third-party mod fluids. VoidTech progression fluids are filtered through
+ * VoidFluidCatalog so their required machine tier is respected.
  *
- * This class only discovers and classifies fluids. It does not apply any
- * production multiplier. Quantity remains controlled by Yield Upgrades.
+ * This class never changes production quantity. Yield Upgrades remain the
+ * only source of output quantity changes.
  */
 public final class VoidFluidCompatibilityCatalog {
     private VoidFluidCompatibilityCatalog() {}
@@ -25,18 +26,11 @@ public final class VoidFluidCompatibilityCatalog {
         List<ResourceLocation> result = new ArrayList<>();
 
         for (Fluid fluid : ForgeRegistries.FLUIDS.getValues()) {
-            if (fluid == Fluids.EMPTY) {
-                continue;
-            }
-
-            if (!fluid.defaultFluidState().isSource()) {
-                continue;
-            }
+            if (fluid == Fluids.EMPTY) continue;
+            if (!fluid.defaultFluidState().isSource()) continue;
 
             ResourceLocation id = ForgeRegistries.FLUIDS.getKey(fluid);
-            if (id == null) {
-                continue;
-            }
+            if (id == null) continue;
 
             if (VoidFluidCatalog.canProduce(id, machineTier)) {
                 result.add(id);
@@ -48,18 +42,11 @@ public final class VoidFluidCompatibilityCatalog {
     }
 
     public static boolean isSelectable(ResourceLocation id, int machineTier) {
-        if (id == null) {
-            return false;
-        }
+        if (id == null) return false;
 
         Fluid fluid = ForgeRegistries.FLUIDS.getValue(id);
-        if (fluid == null || fluid == Fluids.EMPTY) {
-            return false;
-        }
-
-        if (!fluid.defaultFluidState().isSource()) {
-            return false;
-        }
+        if (fluid == null || fluid == Fluids.EMPTY) return false;
+        if (!fluid.defaultFluidState().isSource()) return false;
 
         return VoidFluidCatalog.canProduce(id, machineTier);
     }
