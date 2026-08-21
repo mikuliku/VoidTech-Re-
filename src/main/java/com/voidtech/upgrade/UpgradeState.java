@@ -4,12 +4,6 @@ import com.voidtech.registry.ModItems;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemStackHandler;
 
-/**
- * Reads the four upgrade slots as levels.
- *
- * The stack count is the installed level. This lets one upgrade item represent
- * multiple levels without creating sixteen separate item registrations.
- */
 public final class UpgradeState {
     public static final int SPEED_SLOT = 0;
     public static final int YIELD_SLOT = 1;
@@ -19,10 +13,16 @@ public final class UpgradeState {
     private UpgradeState() {}
 
     public static int level(ItemStackHandler upgrades, int slot) {
-        if (upgrades == null || slot < 0 || slot >= upgrades.getSlots()) {
-            return 0;
+        if (upgrades == null || slot < 0 || slot >= upgrades.getSlots()) return 0;
+
+        int count = upgrades.getStackInSlot(slot).getCount();
+
+        // Precision and Dimension are intentionally binary.
+        if (slot == PRECISION_SLOT || slot == DIMENSION_SLOT) {
+            return count > 0 ? 1 : 0;
         }
-        return UpgradeRules.clampLevel(upgrades.getStackInSlot(slot).getCount());
+
+        return UpgradeRules.clampLevel(count);
     }
 
     public static int speed(ItemStackHandler upgrades) {
