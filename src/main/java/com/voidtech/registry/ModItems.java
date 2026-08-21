@@ -26,13 +26,10 @@ public final class ModItems {
     public static final RegistryObject<Item> DIMENSIONAL_ALLOY = ITEMS.register("dimensional_alloy", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> VOID_SINGULARITY = ITEMS.register("void_singularity", () -> new Item(new Item.Properties()));
 
-    // Speed and Yield use stack count as levels 1-6.
     public static final RegistryObject<Item> SPEED_UPGRADE = ITEMS.register("speed_upgrade",
             () -> new Item(new Item.Properties().stacksTo(16)));
     public static final RegistryObject<Item> YIELD_UPGRADE = ITEMS.register("yield_upgrade",
             () -> new Item(new Item.Properties().stacksTo(16)));
-
-    // Precision and Dimension are binary upgrades: exactly one can be installed.
     public static final RegistryObject<Item> PRECISION_UPGRADE = ITEMS.register("precision_upgrade",
             () -> new Item(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> DIMENSION_UPGRADE = ITEMS.register("dimension_upgrade",
@@ -44,6 +41,13 @@ public final class ModItems {
     public static final RegistryObject<Item> VOID_MINING_MACHINE_T4 = registerMachineItem("void_mining_machine_t4", ModBlocks.VOID_MINING_MACHINE_T4);
     public static final RegistryObject<Item> VOID_MINING_MACHINE_T5 = registerMachineItem("void_mining_machine_t5", ModBlocks.VOID_MINING_MACHINE_T5);
     public static final RegistryObject<Item> VOID_MINING_MACHINE_T6 = registerMachineItem("void_mining_machine_t6", ModBlocks.VOID_MINING_MACHINE_T6);
+
+    public static final RegistryObject<Item> VOID_FABRICATOR_T1 = registerMachineItem("void_fabricator_t1", ModBlocks.VOID_FABRICATOR_T1);
+    public static final RegistryObject<Item> VOID_FABRICATOR_T2 = registerMachineItem("void_fabricator_t2", ModBlocks.VOID_FABRICATOR_T2);
+    public static final RegistryObject<Item> VOID_FABRICATOR_T3 = registerMachineItem("void_fabricator_t3", ModBlocks.VOID_FABRICATOR_T3);
+    public static final RegistryObject<Item> VOID_FABRICATOR_T4 = registerMachineItem("void_fabricator_t4", ModBlocks.VOID_FABRICATOR_T4);
+    public static final RegistryObject<Item> VOID_FABRICATOR_T5 = registerMachineItem("void_fabricator_t5", ModBlocks.VOID_FABRICATOR_T5);
+    public static final RegistryObject<Item> VOID_FABRICATOR_T6 = registerMachineItem("void_fabricator_t6", ModBlocks.VOID_FABRICATOR_T6);
 
     public static final RegistryObject<Item> VOID_ENERGY_INTERFACE_T1 = registerMachineItem("void_energy_interface_t1", ModBlocks.VOID_ENERGY_INTERFACE_T1);
     public static final RegistryObject<Item> VOID_ENERGY_INTERFACE_T2 = registerMachineItem("void_energy_interface_t2", ModBlocks.VOID_ENERGY_INTERFACE_T2);
