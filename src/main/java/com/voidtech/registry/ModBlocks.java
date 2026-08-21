@@ -5,6 +5,7 @@ import com.voidtech.block.VoidEnergyInterfaceBlock;
 import com.voidtech.block.VoidFluidInterfaceBlock;
 import com.voidtech.block.VoidItemInterfaceBlock;
 import com.voidtech.block.VoidMiningMachineBlock;
+import com.voidtech.block.VoidFabricatorBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.material.MapColor;
@@ -43,6 +44,13 @@ public final class ModBlocks {
     public static final RegistryObject<Block> VOID_FLUID_MACHINE_T5 = registerFluidMachine("void_fluid_machine_t5", 5);
     public static final RegistryObject<Block> VOID_FLUID_MACHINE_T6 = registerFluidMachine("void_fluid_machine_t6", 6);
 
+    public static final RegistryObject<Block> VOID_FABRICATOR_T1 = registerFabricator("void_fabricator_t1", 1);
+    public static final RegistryObject<Block> VOID_FABRICATOR_T2 = registerFabricator("void_fabricator_t2", 2);
+    public static final RegistryObject<Block> VOID_FABRICATOR_T3 = registerFabricator("void_fabricator_t3", 3);
+    public static final RegistryObject<Block> VOID_FABRICATOR_T4 = registerFabricator("void_fabricator_t4", 4);
+    public static final RegistryObject<Block> VOID_FABRICATOR_T5 = registerFabricator("void_fabricator_t5", 5);
+    public static final RegistryObject<Block> VOID_FABRICATOR_T6 = registerFabricator("void_fabricator_t6", 6);
+
     public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T1 = registerEnergyInterface("void_energy_interface_t1", 1);
     public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T2 = registerEnergyInterface("void_energy_interface_t2", 2);
     public static final RegistryObject<Block> VOID_ENERGY_INTERFACE_T3 = registerEnergyInterface("void_energy_interface_t3", 3);
@@ -72,6 +80,12 @@ public final class ModBlocks {
 
     private static RegistryObject<Block> registerMachine(String id, int tier) {
         return BLOCKS.register(id, () -> new VoidMiningMachineBlock(
+                BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_BLUE)
+                        .strength(5.0F, 10.0F).sound(SoundType.METAL), tier));
+    }
+
+    private static RegistryObject<Block> registerFabricator(String id, int tier) {
+        return BLOCKS.register(id, () -> new VoidFabricatorBlock(
                 BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_BLUE)
                         .strength(5.0F, 10.0F).sound(SoundType.METAL), tier));
     }
