@@ -1,6 +1,7 @@
 package com.voidtech;
 
 import com.voidtech.network.VoidTechNetwork;
+import com.voidtech.recipe.ModRecipeSerializers;
 import com.voidtech.registry.*;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -18,6 +19,7 @@ public class VoidTech {
         ModFluids.FLUID_TYPES.register(bus);
         ModFluids.FLUIDS.register(bus);
         ModFluids.FLUID_BLOCKS.register(bus);
+        ModRecipeSerializers.SERIALIZERS.register(bus);
         VoidTechNetwork.register();
     }
 }
