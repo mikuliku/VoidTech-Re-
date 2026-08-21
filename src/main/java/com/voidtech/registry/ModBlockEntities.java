@@ -5,6 +5,7 @@ import com.voidtech.block.entity.VoidEnergyInterfaceBlockEntity;
 import com.voidtech.block.entity.VoidFluidInterfaceBlockEntity;
 import com.voidtech.block.entity.VoidItemInterfaceBlockEntity;
 import com.voidtech.block.entity.VoidMiningMachineBlockEntity;
+import com.voidtech.block.entity.VoidFabricatorBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -30,6 +31,15 @@ public final class ModBlockEntities {
                     ModBlocks.VOID_MINING_MACHINE_T1.get(), ModBlocks.VOID_MINING_MACHINE_T2.get(),
                     ModBlocks.VOID_MINING_MACHINE_T3.get(), ModBlocks.VOID_MINING_MACHINE_T4.get(),
                     ModBlocks.VOID_MINING_MACHINE_T5.get(), ModBlocks.VOID_MINING_MACHINE_T6.get()
+            ).build(null));
+
+    public static final RegistryObject<BlockEntityType<VoidFabricatorBlockEntity>> VOID_FABRICATOR =
+            BLOCK_ENTITIES.register("void_fabricator", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new VoidFabricatorBlockEntity(null, pos, state,
+                            ((VoidFabricatorBlock) state.getBlock()).getTier()),
+                    ModBlocks.VOID_FABRICATOR_T1.get(), ModBlocks.VOID_FABRICATOR_T2.get(),
+                    ModBlocks.VOID_FABRICATOR_T3.get(), ModBlocks.VOID_FABRICATOR_T4.get(),
+                    ModBlocks.VOID_FABRICATOR_T5.get(), ModBlocks.VOID_FABRICATOR_T6.get()
             ).build(null));
 
     public static final RegistryObject<BlockEntityType<VoidEnergyInterfaceBlockEntity>> VOID_ENERGY_INTERFACE =
