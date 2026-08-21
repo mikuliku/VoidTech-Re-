@@ -7,35 +7,21 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 
-/**
- * Generic VoidTech recipe containing item ingredients and one required fluid.
- *
- * The recipe itself is data-driven and network-synchronizable.
- * Machine-side execution should call matchesItems(...) and matchesFluid(...)
- * before consuming inputs.
- */
-public class VoidFluidCraftingRecipe implements Recipe<Container> {
+public final class VoidFluidCraftingRecipe implements Recipe<Container> {
     private final ResourceLocation id;
     private final NonNullList<Ingredient> ingredients;
     private final ResourceLocation fluidId;
     private final int fluidAmount;
     private final ItemStack result;
 
-    public VoidFluidCraftingRecipe(
-            ResourceLocation id,
-            List<Ingredient> ingredients,
-            ResourceLocation fluidId,
-            int fluidAmount,
-            ItemStack result) {
-
+    public VoidFluidCraftingRecipe(ResourceLocation id, List<Ingredient> ingredients,
+                                   ResourceLocation fluidId, int fluidAmount, ItemStack result) {
         this.id = id;
         this.ingredients = NonNullList.create();
         this.ingredients.addAll(ingredients);
@@ -49,60 +35,35 @@ public class VoidFluidCraftingRecipe implements Recipe<Container> {
         return matchesItems(container);
     }
 
-    /**
-     * Checks only item ingredients. Fluid validation is intentionally separate
-     * because VoidTech machines expose their fluid tank through Forge's
-     * IFluidHandler rather than a vanilla Container slot.
-     */
     public boolean matchesItems(Container container) {
         boolean[] used = new boolean[container.getContainerSize()];
-
         for (Ingredient ingredient : ingredients) {
             boolean found = false;
-
             for (int slot = 0; slot < container.getContainerSize(); slot++) {
-                if (used[slot]) continue;
-
-                ItemStack stack = container.getItem(slot);
-                if (ingredient.test(stack)) {
+                if (!used[slot] && ingredient.test(container.getItem(slot))) {
                     used[slot] = true;
                     found = true;
                     break;
                 }
             }
-
             if (!found) return false;
         }
-
         return true;
     }
 
     public boolean matchesFluid(FluidStack supplied) {
         if (supplied == null || supplied.isEmpty()) return false;
-
-        Fluid required = ForgeRegistries.FLUIDS.getValue(fluidId);
-        if (required == null || required == net.minecraft.world.level.material.Fluids.EMPTY) {
-            return false;
-        }
-
-        return supplied.getFluid() == required
+        var fluid = ForgeRegistries.FLUIDS.getValue(fluidId);
+        return fluid != null && supplied.getFluid() == fluid
                 && supplied.getAmount() >= fluidAmount;
     }
 
-    public ResourceLocation getFluidId() {
-        return fluidId;
-    }
-
-    public int getFluidAmount() {
-        return fluidAmount;
-    }
-
-    public NonNullList<Ingredient> getIngredients() {
-        return ingredients;
-    }
+    public ResourceLocation getFluidId() { return fluidId; }
+    public int getFluidAmount() { return fluidAmount; }
+    public NonNullList<Ingredient> getIngredients() { return ingredients; }
 
     @Override
-    public ItemStack assemble(Container container, RegistryAccess registryAccess) {
+    public ItemStack assemble(Container container, RegistryAccess access) {
         return result.copy();
     }
 
@@ -112,14 +73,12 @@ public class VoidFluidCraftingRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
+    public ItemStack getResultItem(RegistryAccess access) {
         return result.copy();
     }
 
     @Override
-    public ResourceLocation getId() {
-        return id;
-    }
+    public ResourceLocation getId() { return id; }
 
     @Override
     public RecipeSerializer<?> getSerializer() {
@@ -129,14 +88,5 @@ public class VoidFluidCraftingRecipe implements Recipe<Container> {
     @Override
     public net.minecraft.world.item.crafting.RecipeType<?> getType() {
         return ModRecipeTypes.FLUID_CRAFTING;
-    }
-
-    public int getResultCount() {
-        return result.getCount();
-    }
-
-    @Override
-    public boolean isSpecial() {
-        return true;
     }
 }
