@@ -14,6 +14,10 @@ public final class ModMenus {
             MENUS.register("void_mining_machine", () -> IForgeMenuType.create(
                     (id, inv, data) -> VoidMiningMachineMenu.fromNetwork(id, inv, data)));
 
+    public static final RegistryObject<MenuType<VoidFabricatorMenu>> VOID_FABRICATOR =
+            MENUS.register("void_fabricator", () -> IForgeMenuType.create(
+                    (id, inv, data) -> VoidFabricatorMenu.fromNetwork(id, inv, data)));
+
     public static final RegistryObject<MenuType<VoidEnergyInterfaceMenu>> VOID_ENERGY_INTERFACE =
             MENUS.register("void_energy_interface", () -> IForgeMenuType.create(
                     (id, inv, data) -> VoidEnergyInterfaceMenu.fromNetwork(id, inv, data)));
