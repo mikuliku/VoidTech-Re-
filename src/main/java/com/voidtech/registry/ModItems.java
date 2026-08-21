@@ -26,10 +26,17 @@ public final class ModItems {
     public static final RegistryObject<Item> DIMENSIONAL_ALLOY = ITEMS.register("dimensional_alloy", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> VOID_SINGULARITY = ITEMS.register("void_singularity", () -> new Item(new Item.Properties()));
 
-    public static final RegistryObject<Item> SPEED_UPGRADE = ITEMS.register("speed_upgrade", () -> new Item(new Item.Properties().stacksTo(16)));
-    public static final RegistryObject<Item> YIELD_UPGRADE = ITEMS.register("yield_upgrade", () -> new Item(new Item.Properties().stacksTo(16)));
-    public static final RegistryObject<Item> PRECISION_UPGRADE = ITEMS.register("precision_upgrade", () -> new Item(new Item.Properties().stacksTo(16)));
-    public static final RegistryObject<Item> DIMENSION_UPGRADE = ITEMS.register("dimension_upgrade", () -> new Item(new Item.Properties().stacksTo(1)));
+    // Speed and Yield use stack count as levels 1-6.
+    public static final RegistryObject<Item> SPEED_UPGRADE = ITEMS.register("speed_upgrade",
+            () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> YIELD_UPGRADE = ITEMS.register("yield_upgrade",
+            () -> new Item(new Item.Properties().stacksTo(16)));
+
+    // Precision and Dimension are binary upgrades: exactly one can be installed.
+    public static final RegistryObject<Item> PRECISION_UPGRADE = ITEMS.register("precision_upgrade",
+            () -> new Item(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> DIMENSION_UPGRADE = ITEMS.register("dimension_upgrade",
+            () -> new Item(new Item.Properties().stacksTo(1)));
 
     public static final RegistryObject<Item> VOID_MINING_MACHINE_T1 = registerMachineItem("void_mining_machine_t1", ModBlocks.VOID_MINING_MACHINE_T1);
     public static final RegistryObject<Item> VOID_MINING_MACHINE_T2 = registerMachineItem("void_mining_machine_t2", ModBlocks.VOID_MINING_MACHINE_T2);
@@ -51,5 +58,6 @@ public final class ModItems {
     private static RegistryObject<Item> registerMachineItem(String id, RegistryObject<net.minecraft.world.level.block.Block> block) {
         return ITEMS.register(id, () -> new BlockItem(block.get(), new Item.Properties()));
     }
+
     private ModItems() {}
 }
