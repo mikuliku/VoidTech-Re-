@@ -11,8 +11,7 @@ public final class ModRecipeSerializers {
             DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, VoidTech.MOD_ID);
 
     public static final RegistryObject<RecipeSerializer<VoidFluidCraftingRecipe>> FLUID_CRAFTING =
-            SERIALIZERS.register("fluid_crafting",
-                    VoidFluidCraftingRecipeSerializer::new);
+            SERIALIZERS.register("fluid_crafting", VoidFluidCraftingRecipeSerializer::new);
 
     private ModRecipeSerializers() {}
 }
