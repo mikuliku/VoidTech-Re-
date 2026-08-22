@@ -1,10 +1,14 @@
 package com.voidtech.block.entity;
 
 import com.voidtech.menu.VoidFabricatorMenu;
+import com.voidtech.recipe.VoidFluidCraftingRecipe;
+import com.voidtech.recipe.VoidRecipeHelper;
+import com.voidtech.recipe.ModRecipeTypes;
 import com.voidtech.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -28,14 +32,19 @@ import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class VoidFabricatorBlockEntity extends BlockEntity implements MenuProvider {
-    private static final int[] ENERGY_CAPACITY = {0,100000,250000,500000,1000000,2500000,5000000};
-    private static final int[] ENERGY_TRANSFER = {0,2000,5000,10000,20000,40000,80000};
-    private static final int[] TANK_CAPACITY = {0,4000,8000,16000,32000,64000,128000};
-    private static final int[] PROCESS_TIME = {0,200,170,140,110,85,60};
+    private static final int[] ENERGY_CAPACITY = {0, 100000, 250000, 500000, 1000000, 2500000, 5000000};
+    private static final int[] ENERGY_TRANSFER = {0, 2000, 5000, 10000, 20000, 40000, 80000};
+    private static final int[] TANK_CAPACITY = {0, 4000, 8000, 16000, 32000, 64000, 128000};
+    private static final int[] PROCESS_TIME = {0, 200, 170, 140, 110, 85, 60};
+    private static final int[] ENERGY_PER_TICK = {0, 50, 100, 200, 400, 800, 1600};
 
     private final int tier;
     private int progress;
+    private ItemStack pendingResult = ItemStack.EMPTY;
 
     private final EnergyStorage energy;
     private final LazyOptional<IEnergyStorage> energyCap;
@@ -112,11 +121,125 @@ public final class VoidFabricatorBlockEntity extends BlockEntity implements Menu
 
     public static void serverTick(
             Level level, BlockPos pos, BlockState state, VoidFabricatorBlockEntity machine) {
-        // ⑥-1 only establishes the machine, inventories, energy and fluid tank.
-        // Recipe execution is deliberately added in ⑥-2.
+
+        if (level.isClientSide) return;
+
+        // 6-2A: recipe discovery, fluid requirement, energy consumption,
+        // processing progress, item consumption and output insertion.
+
         if (machine.progress > 0) {
-            machine.progress = Math.max(0, machine.progress - 1);
-            machine.setChanged();
+            if (machine.pendingResult.isEmpty()) {
+                machine.progress = 0;
+                machine.setChanged();
+                return;
+            }
+
+            int energyCost = ENERGY_PER_TICK[machine.tier];
+            if (machine.energy.getEnergyStored() < energyCost) {
+                return;
+            }
+
+            machine.energy.extractEnergy(energyCost, false);
+            machine.progress--;
+
+            if (machine.progress <= 0) {
+                ItemStack result = machine.pendingResult.copy();
+
+                if (machine.canInsertResult(result)) {
+                    machine.insertResult(result);
+                    machine.pendingResult = ItemStack.EMPTY;
+                    machine.setChanged();
+                } else {
+                    // Keep the result pending until the output slot has room.
+                    machine.progress = 1;
+                }
+            } else {
+                machine.setChanged();
+            }
+            return;
+        }
+
+        VoidFluidCraftingRecipe recipe = machine.findMatchingRecipe(level);
+        if (recipe == null) return;
+
+        int totalEnergy = PROCESS_TIME[machine.tier] * ENERGY_PER_TICK[machine.tier];
+        if (machine.energy.getEnergyStored() < totalEnergy) return;
+
+        ItemStack result = recipe.getResultItem(level.registryAccess());
+        if (result.isEmpty() || !machine.canInsertResult(result)) return;
+
+        // Consume the item ingredients once when processing starts.
+        if (!machine.consumeIngredients(recipe)) return;
+
+        // Consume the required void fluid once when processing starts.
+        FluidStack drained = machine.fluidTank.drain(
+                recipe.getFluidAmount(), IFluidHandler.FluidAction.EXECUTE);
+        if (drained.getAmount() < recipe.getFluidAmount()) {
+            // This should normally be impossible because findMatchingRecipe()
+            // already checked the fluid requirement.
+            return;
+        }
+
+        machine.pendingResult = result.copy();
+        machine.progress = PROCESS_TIME[machine.tier];
+        machine.setChanged();
+    }
+
+    @Nullable
+    private VoidFluidCraftingRecipe findMatchingRecipe(Level level) {
+        List<ItemStack> items = new ArrayList<>();
+        for (int slot = 0; slot < input.getSlots(); slot++) {
+            ItemStack stack = input.getStackInSlot(slot);
+            if (!stack.isEmpty()) {
+                items.add(stack);
+            }
+        }
+
+        FluidStack suppliedFluid = fluidTank.getFluid();
+        for (VoidFluidCraftingRecipe recipe :
+                level.getRecipeManager().getAllRecipesFor(ModRecipeTypes.FLUID_CRAFTING)) {
+            if (VoidRecipeHelper.matches(recipe, items, suppliedFluid)) {
+                return recipe;
+            }
+        }
+        return null;
+    }
+
+    private boolean consumeIngredients(VoidFluidCraftingRecipe recipe) {
+        boolean[] used = new boolean[input.getSlots()];
+
+        for (var ingredient : recipe.getIngredients()) {
+            boolean found = false;
+            for (int slot = 0; slot < input.getSlots(); slot++) {
+                if (!used[slot] && ingredient.test(input.getStackInSlot(slot))) {
+                    used[slot] = true;
+                    input.extractItem(slot, 1, false);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return false;
+        }
+        return true;
+    }
+
+    private boolean canInsertResult(ItemStack result) {
+        ItemStack current = output.getStackInSlot(0);
+        if (current.isEmpty()) return result.getCount() <= output.getSlotLimit(0);
+
+        if (!ItemStack.isSameItemSameTags(current, result)) return false;
+
+        return current.getCount() + result.getCount() <=
+                Math.min(current.getMaxStackSize(), output.getSlotLimit(0));
+    }
+
+    private void insertResult(ItemStack result) {
+        ItemStack current = output.getStackInSlot(0);
+        if (current.isEmpty()) {
+            output.setStackInSlot(0, result.copy());
+        } else {
+            current.grow(result.getCount());
+            output.setStackInSlot(0, current);
         }
     }
 
@@ -149,6 +272,10 @@ public final class VoidFabricatorBlockEntity extends BlockEntity implements Menu
         tag.put("Upgrades", upgrades.serializeNBT());
         tag.put("Fluid", fluidTank.writeToNBT(new CompoundTag()));
         tag.putInt("Energy", energy.getEnergyStored());
+
+        if (!pendingResult.isEmpty()) {
+            tag.put("PendingResult", pendingResult.save(new CompoundTag()));
+        }
     }
 
     @Override
@@ -160,6 +287,16 @@ public final class VoidFabricatorBlockEntity extends BlockEntity implements Menu
         upgrades.deserializeNBT(tag.getCompound("Upgrades"));
         fluidTank.readFromNBT(tag.getCompound("Fluid"));
         energy.receiveEnergy(tag.getInt("Energy"), false);
+
+        if (tag.contains("PendingResult")) {
+            pendingResult = ItemStack.of(tag.getCompound("PendingResult"));
+        } else {
+            pendingResult = ItemStack.EMPTY;
+        }
+
+        if (progress > 0 && pendingResult.isEmpty()) {
+            progress = 0;
+        }
     }
 
     @Override
