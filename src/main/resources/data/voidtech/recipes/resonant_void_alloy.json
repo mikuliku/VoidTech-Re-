@@ -1,21 +1,37 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "pattern": [
-    "VQV",
-    "QDQ",
-    "VQV"
-  ],
-  "key": {
-    "V": {
+  "type": "voidtech:fluid_crafting",
+  "ingredients": [
+    {
       "item": "voidtech:voidium_ingot"
     },
-    "Q": {
+    {
+      "item": "voidtech:voidium_ingot"
+    },
+    {
+      "item": "voidtech:voidium_ingot"
+    },
+    {
+      "item": "voidtech:voidium_ingot"
+    },
+    {
       "item": "minecraft:quartz"
     },
-    "D": {
+    {
+      "item": "minecraft:quartz"
+    },
+    {
+      "item": "minecraft:quartz"
+    },
+    {
+      "item": "minecraft:quartz"
+    },
+    {
       "item": "minecraft:diamond"
     }
+  ],
+  "fluid": {
+    "fluid": "voidtech:void_ignited",
+    "amount": 2000
   },
   "result": {
     "item": "voidtech:resonant_void_alloy",
