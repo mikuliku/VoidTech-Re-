@@ -1,21 +1,37 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "pattern": [
-    "DND",
-    "NSN",
-    "DND"
-  ],
-  "key": {
-    "D": {
+  "type": "voidtech:fluid_crafting",
+  "ingredients": [
+    {
       "item": "voidtech:dimensional_alloy"
     },
-    "N": {
+    {
+      "item": "voidtech:dimensional_alloy"
+    },
+    {
+      "item": "voidtech:dimensional_alloy"
+    },
+    {
+      "item": "voidtech:dimensional_alloy"
+    },
+    {
       "item": "minecraft:nether_star"
     },
-    "S": {
+    {
+      "item": "minecraft:nether_star"
+    },
+    {
+      "item": "minecraft:nether_star"
+    },
+    {
+      "item": "minecraft:nether_star"
+    },
+    {
       "item": "minecraft:echo_shard"
     }
+  ],
+  "fluid": {
+    "fluid": "voidtech:void_concentrate",
+    "amount": 8000
   },
   "result": {
     "item": "voidtech:void_singularity",
