@@ -135,7 +135,8 @@ public final class VoidFabricatorBlockEntity extends BlockEntity implements Menu
     @Override
     @Nullable
     public AbstractContainerMenu createMenu(int id, Inventory inv, Player player) {
-        return new VoidFabricatorMenu(id, inv, tier, data, input, output, upgrades, pos);
+        return new VoidFabricatorMenu(
+                id, inv, tier, data, input, output, upgrades, getBlockPos());
     }
 
     @Override
