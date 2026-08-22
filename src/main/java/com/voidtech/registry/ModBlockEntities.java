@@ -36,7 +36,7 @@ public final class ModBlockEntities {
     public static final RegistryObject<BlockEntityType<VoidFabricatorBlockEntity>> VOID_FABRICATOR =
             BLOCK_ENTITIES.register("void_fabricator", () -> BlockEntityType.Builder.of(
                     (pos, state) -> new VoidFabricatorBlockEntity(null, pos, state,
-                            ((VoidFabricatorBlock) state.getBlock()).getTier()),
+                            ((com.voidtech.block.VoidFabricatorBlock) state.getBlock()).getTier()),
                     ModBlocks.VOID_FABRICATOR_T1.get(), ModBlocks.VOID_FABRICATOR_T2.get(),
                     ModBlocks.VOID_FABRICATOR_T3.get(), ModBlocks.VOID_FABRICATOR_T4.get(),
                     ModBlocks.VOID_FABRICATOR_T5.get(), ModBlocks.VOID_FABRICATOR_T6.get()
