@@ -1,21 +1,37 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "pattern": [
-    "IVI",
-    "VDV",
-    "IVI"
-  ],
-  "key": {
-    "I": {
+  "type": "voidtech:fluid_crafting",
+  "ingredients": [
+    {
       "item": "voidtech:voidium_ingot"
     },
-    "V": {
+    {
+      "item": "voidtech:voidium_ingot"
+    },
+    {
+      "item": "voidtech:voidium_ingot"
+    },
+    {
+      "item": "voidtech:voidium_ingot"
+    },
+    {
       "item": "voidtech:void_crystal"
     },
-    "D": {
+    {
+      "item": "voidtech:void_crystal"
+    },
+    {
+      "item": "voidtech:void_crystal"
+    },
+    {
+      "item": "voidtech:void_crystal"
+    },
+    {
       "item": "minecraft:diamond"
     }
+  ],
+  "fluid": {
+    "fluid": "voidtech:void_original",
+    "amount": 1000
   },
   "result": {
     "item": "voidtech:void_alloy",
