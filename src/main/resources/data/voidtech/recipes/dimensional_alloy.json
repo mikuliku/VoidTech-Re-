@@ -1,21 +1,31 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "pattern": [
-    "RER",
-    "ENE",
-    "RER"
-  ],
-  "key": {
-    "R": {
+  "type": "voidtech:fluid_crafting",
+  "ingredients": [
+    {
       "item": "voidtech:resonant_void_alloy"
     },
-    "E": {
+    {
+      "item": "voidtech:resonant_void_alloy"
+    },
+    {
       "item": "minecraft:ender_pearl"
     },
-    "N": {
+    {
+      "item": "minecraft:ender_pearl"
+    },
+    {
+      "item": "minecraft:ender_pearl"
+    },
+    {
+      "item": "minecraft:ender_pearl"
+    },
+    {
       "item": "minecraft:netherite_ingot"
     }
+  ],
+  "fluid": {
+    "fluid": "voidtech:void_metal_melt",
+    "amount": 4000
   },
   "result": {
     "item": "voidtech:dimensional_alloy",
